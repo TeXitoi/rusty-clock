@@ -12,6 +12,7 @@ extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
 extern crate cortex_m_semihosting as sh;
 extern crate heapless;
+extern crate bme280;
 
 use rt::ExceptionFrame;
 use hal::prelude::*;
@@ -25,18 +26,41 @@ app! {
 
     resources: {
         static RTC_DEV: rtc::Rtc;
+        static BME280: bme280::BME280<hal::i2c::BlockingI2c<hal::stm32f103xx::I2C1, (hal::gpio::gpiob::PB6<hal::gpio::Alternate<hal::gpio::OpenDrain>>, hal::gpio::gpiob::PB7<hal::gpio::Alternate<hal::gpio::OpenDrain>>)>, hal::delay::Delay>;
     },
 
     tasks: {
         RTC: {
             path: handle_rtc,
-            resources: [RTC_DEV],
+            resources: [RTC_DEV, BME280],
         },
     },
 }
 
 fn init(mut p: init::Peripherals) -> init::LateResources {
+    let mut flash = p.device.FLASH.constrain();
     let mut rcc = p.device.RCC.constrain();
+    let mut afio = p.device.AFIO.constrain(&mut rcc.apb2);
+    let clocks = rcc.cfgr.freeze(&mut flash.acr);
+
+    let mut gpiob = p.device.GPIOB.split(&mut rcc.apb2);
+    let pb6 = gpiob.pb6.into_alternate_open_drain(&mut gpiob.crl);
+    let pb7 = gpiob.pb7.into_alternate_open_drain(&mut gpiob.crl);
+    let i2c = hal::i2c::I2c::i2c1(
+        p.device.I2C1,
+        (pb6, pb7),
+        &mut afio.mapr,
+        hal::i2c::Mode::Fast {
+            frequency: 400_000,
+            duty_cycle: hal::i2c::DutyCycle::Ratio16to9,
+        },
+        clocks,
+        &mut rcc.apb1,
+    );
+    let i2c = hal::i2c::blocking_i2c(i2c, clocks, 100, 100, 100, 100);
+    let delay = hal::delay::Delay::new(p.core.SYST, clocks);
+    let mut bme280 = bme280::BME280::new_primary(i2c, delay);
+    bme280.init().unwrap();
 
     let mut rtc = rtc::Rtc::new(p.device.RTC, &mut rcc.apb1, &mut p.device.PWR);
     if rtc.get_cnt() < 100 {
@@ -56,13 +80,30 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     rtc.enable_second_interrupt(&mut p.core.NVIC);
     init::LateResources {
         RTC_DEV: rtc,
+        BME280: bme280,
     }
 }
 
 fn handle_rtc(_t: &mut rtfm::Threshold, mut r: RTC::Resources) {
     let mut hstdout = sh::hio::hstdout().unwrap();
-    let mut s = heapless::String::<heapless::consts::U32>::new();
+    let mut s = heapless::String::<heapless::consts::U128>::new();
+
     writeln!(s, "{}", rtc::datetime::DateTime::new(r.RTC_DEV.get_cnt())).unwrap();
+
+    let measurements = r.BME280.measure().unwrap();
+    writeln!(
+        s,
+        "Temperature = {}.{:02}°C",
+        (measurements.temperature) as i32,
+        (measurements.temperature * 100.) as i32 % 100,
+    ).unwrap();
+    writeln!(
+        s,
+        "Pressure = {}.{:03}hPa",
+        (measurements.pressure / 100.) as i32,
+        (measurements.pressure * 10.) as i32 % 1000,
+    ).unwrap();
+    
     hstdout.write_str(&s).unwrap();
     r.RTC_DEV.clear_second_interrupt();
 }
