@@ -1,0 +1,16 @@
+[package]
+name = "rusty-clock"
+version = "0.1.0"
+authors = ["Guillaume Pinot <texitoi@texitoi.eu>"]
+
+[dependencies]
+stm32f103xx-hal = { git = "https://github.com/ilya-epifanov/stm32f103xx-hal", rev = "3a8d64d3605b5eac9fd15eea0ba25319fbb8375c" }
+stm32f103xx = { version = "0.10", features = ["rt"] }
+cortex-m = "0.5"
+cortex-m-rt = { version = "0.5", features = ["device"] }
+cortex-m-rtfm = { git = "https://github.com/MabezDev/cortex-m-rtfm", branch = "master" }
+panic-semihosting = "0.3"
+cortex-m-semihosting = "0.3"
+bme280 = { git = "https://github.com/TeXitoi/bme280-rs", branch = "add-bmp280" }
+stm32f103xx-rtc = { git = "https://github.com/TeXitoi/stm32f103xx-rtc", branch = "master" }
+heapless = "0.3.6"
