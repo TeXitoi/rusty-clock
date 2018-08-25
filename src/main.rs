@@ -6,18 +6,29 @@
 extern crate cortex_m;
 #[macro_use]
 extern crate cortex_m_rt as rt;
+extern crate bme280;
 extern crate cortex_m_rtfm as rtfm;
-extern crate panic_semihosting;
-extern crate stm32f103xx_hal as hal;
-extern crate stm32f103xx_rtc as rtc;
 extern crate cortex_m_semihosting as sh;
 extern crate heapless;
-extern crate bme280;
+extern crate panic_semihosting;
+extern crate pwm_speaker;
+extern crate stm32f103xx_hal as hal;
+extern crate stm32f103xx_rtc as rtc;
 
-use rt::ExceptionFrame;
-use hal::prelude::*;
-use rtfm::{app, Threshold};
 use core::fmt::Write;
+use hal::prelude::*;
+use rt::ExceptionFrame;
+use rtfm::{app, Resource, Threshold};
+
+mod alarm;
+
+type I2C = hal::i2c::BlockingI2c<
+    hal::stm32f103xx::I2C1,
+    (
+        hal::gpio::gpiob::PB6<hal::gpio::Alternate<hal::gpio::OpenDrain>>,
+        hal::gpio::gpiob::PB7<hal::gpio::Alternate<hal::gpio::OpenDrain>>,
+    ),
+>;
 
 entry!(main);
 
@@ -26,13 +37,19 @@ app! {
 
     resources: {
         static RTC_DEV: rtc::Rtc;
-        static BME280: bme280::BME280<hal::i2c::BlockingI2c<hal::stm32f103xx::I2C1, (hal::gpio::gpiob::PB6<hal::gpio::Alternate<hal::gpio::OpenDrain>>, hal::gpio::gpiob::PB7<hal::gpio::Alternate<hal::gpio::OpenDrain>>)>, hal::delay::Delay>;
+        static BME280: bme280::BME280<I2C, hal::delay::Delay>;
+        static ALARM: alarm::Alarm;
     },
 
     tasks: {
         RTC: {
             path: handle_rtc,
-            resources: [RTC_DEV, BME280],
+            resources: [RTC_DEV, BME280, ALARM],
+        },
+        TIM3: {
+            path: one_khz,
+            resources: [ALARM],
+            priority: 3,
         },
     },
 }
@@ -62,15 +79,28 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     let mut bme280 = bme280::BME280::new_primary(i2c, delay);
     bme280.init().unwrap();
 
+    let mut gpioa = p.device.GPIOA.split(&mut rcc.apb2);
+    let c1 = gpioa.pa0.into_alternate_push_pull(&mut gpioa.crl);
+    let mut pwm = p
+        .device
+        .TIM2
+        .pwm(c1, &mut afio.mapr, 440.hz(), clocks, &mut rcc.apb1);
+    pwm.enable();
+    let speaker = pwm_speaker::Speaker::new(pwm, clocks);
+
+    let mut timer = hal::timer::Timer::tim3(p.device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
+    timer.listen(hal::timer::Event::Update);
+    p.core.NVIC.enable(hal::stm32f103xx::Interrupt::TIM3);
+
     let mut rtc = rtc::Rtc::new(p.device.RTC, &mut rcc.apb1, &mut p.device.PWR);
     if rtc.get_cnt() < 100 {
         let today = rtc::datetime::DateTime {
             year: 2018,
             month: 8,
-            day: 15,
-            hour: 0,
-            min: 45,
-            sec: 0,
+            day: 25,
+            hour: 23,
+            min: 00,
+            sec: 50,
             day_of_week: rtc::datetime::DayOfWeek::Wednesday,
         };
         if let Some(epoch) = today.to_epoch() {
@@ -78,17 +108,24 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         }
     }
     rtc.enable_second_interrupt(&mut p.core.NVIC);
+
     init::LateResources {
         RTC_DEV: rtc,
         BME280: bme280,
+        ALARM: alarm::Alarm::new(speaker),
     }
 }
 
-fn handle_rtc(_t: &mut rtfm::Threshold, mut r: RTC::Resources) {
+fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
     let mut hstdout = sh::hio::hstdout().unwrap();
     let mut s = heapless::String::<heapless::consts::U128>::new();
+    let datetime = rtc::datetime::DateTime::new(r.RTC_DEV.get_cnt());
 
-    writeln!(s, "{}", rtc::datetime::DateTime::new(r.RTC_DEV.get_cnt())).unwrap();
+    if datetime.sec == 0 {
+        r.ALARM.claim_mut(t, |alarm, _t| alarm.play());
+    }
+
+    writeln!(s, "{}", datetime).unwrap();
 
     let measurements = r.BME280.measure().unwrap();
     writeln!(
@@ -99,13 +136,22 @@ fn handle_rtc(_t: &mut rtfm::Threshold, mut r: RTC::Resources) {
     ).unwrap();
     writeln!(
         s,
-        "Pressure = {}.{:03}hPa",
+        "Pressure = {}.{:02}hPa",
         (measurements.pressure / 100.) as i32,
-        (measurements.pressure * 10.) as i32 % 1000,
+        measurements.pressure as i32 % 100,
     ).unwrap();
-    
+
     hstdout.write_str(&s).unwrap();
     r.RTC_DEV.clear_second_interrupt();
+}
+
+fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
+    unsafe {
+        (*hal::stm32f103xx::TIM3::ptr())
+            .sr
+            .modify(|_, w| w.uif().clear_bit());
+    };
+    r.ALARM.poll();
 }
 
 fn idle() -> ! {
