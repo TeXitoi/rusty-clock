@@ -15,8 +15,13 @@ bme280 = { git = "https://github.com/TeXitoi/bme280-rs", branch = "add-bmp280" }
 stm32f103xx-rtc = { git = "https://github.com/TeXitoi/stm32f103xx-rtc", branch = "master" }
 heapless = "0.3.6"
 pwm-speaker = { git = "https://github.com/TeXitoi/pwm-speaker" }
+embedded-hal = "0.2.1"
 
 [profile.dev]
 opt-level = 1
+lto = true
+incremental = false
+
+[profile.release]
 lto = true
 incremental = false

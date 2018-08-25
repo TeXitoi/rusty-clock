@@ -14,6 +14,7 @@ extern crate panic_semihosting;
 extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
+extern crate embedded_hal;
 
 use core::fmt::Write;
 use hal::prelude::*;
@@ -21,6 +22,7 @@ use rt::ExceptionFrame;
 use rtfm::{app, Resource, Threshold};
 
 mod alarm;
+mod button;
 
 type I2C = hal::i2c::BlockingI2c<
     hal::stm32f103xx::I2C1,
@@ -29,6 +31,7 @@ type I2C = hal::i2c::BlockingI2c<
         hal::gpio::gpiob::PB7<hal::gpio::Alternate<hal::gpio::OpenDrain>>,
     ),
 >;
+type ButtonPin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::Floating>>;
 
 entry!(main);
 
@@ -39,6 +42,7 @@ app! {
         static RTC_DEV: rtc::Rtc;
         static BME280: bme280::BME280<I2C, hal::delay::Delay>;
         static ALARM: alarm::Alarm;
+        static BUTTON: button::Button<ButtonPin>;
     },
 
     tasks: {
@@ -48,7 +52,7 @@ app! {
         },
         TIM3: {
             path: one_khz,
-            resources: [ALARM],
+            resources: [BUTTON, ALARM],
             priority: 3,
         },
     },
@@ -59,8 +63,9 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     let mut rcc = p.device.RCC.constrain();
     let mut afio = p.device.AFIO.constrain(&mut rcc.apb2);
     let clocks = rcc.cfgr.freeze(&mut flash.acr);
-
+    let mut gpioa = p.device.GPIOA.split(&mut rcc.apb2);
     let mut gpiob = p.device.GPIOB.split(&mut rcc.apb2);
+
     let pb6 = gpiob.pb6.into_alternate_open_drain(&mut gpiob.crl);
     let pb7 = gpiob.pb7.into_alternate_open_drain(&mut gpiob.crl);
     let i2c = hal::i2c::I2c::i2c1(
@@ -79,7 +84,6 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     let mut bme280 = bme280::BME280::new_primary(i2c, delay);
     bme280.init().unwrap();
 
-    let mut gpioa = p.device.GPIOA.split(&mut rcc.apb2);
     let c1 = gpioa.pa0.into_alternate_push_pull(&mut gpioa.crl);
     let mut pwm = p
         .device
@@ -87,6 +91,8 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         .pwm(c1, &mut afio.mapr, 440.hz(), clocks, &mut rcc.apb1);
     pwm.enable();
     let speaker = pwm_speaker::Speaker::new(pwm, clocks);
+
+    let button_pin = gpiob.pb0.into_floating_input(&mut gpiob.crl);
 
     let mut timer = hal::timer::Timer::tim3(p.device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
     timer.listen(hal::timer::Event::Update);
@@ -113,6 +119,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         RTC_DEV: rtc,
         BME280: bme280,
         ALARM: alarm::Alarm::new(speaker),
+        BUTTON: button::Button::new(button_pin),
     }
 }
 
@@ -151,6 +158,11 @@ fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
             .sr
             .modify(|_, w| w.uif().clear_bit());
     };
+
+    if let button::Event::Pressed = r.BUTTON.poll() {
+        r.ALARM.stop();
+    }
+
     r.ALARM.poll();
 }
 

@@ -256,6 +256,7 @@ dependencies = [
  "cortex-m-rt 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rtfm 0.3.2 (git+https://github.com/MabezDev/cortex-m-rtfm)",
  "cortex-m-semihosting 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "embedded-hal 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "heapless 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "panic-semihosting 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pwm-speaker 0.1.0 (git+https://github.com/TeXitoi/pwm-speaker)",
