@@ -4,6 +4,10 @@ matrix:
   include:
     - rust: nightly
       env: RUN=BUILD
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
       before_script: rustup target add thumbv7m-none-eabi
       script: cargo build
     - rust: stable
