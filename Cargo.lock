@@ -80,7 +80,7 @@ dependencies = [
 [[package]]
 name = "cortex-m-rtfm"
 version = "0.3.2"
-source = "git+https://github.com/MabezDev/cortex-m-rtfm#a386c6b0d6f543ab8ba98a31965d2b5e43db3d42"
+source = "git+https://github.com/MabezDev/cortex-m-rtfm#454be9b036ae28dad6ec7901465daa21c546e80d"
 dependencies = [
  "cortex-m 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rtfm-macros 0.3.1 (git+https://github.com/MabezDev/cortex-m-rtfm)",
@@ -91,7 +91,7 @@ dependencies = [
 [[package]]
 name = "cortex-m-rtfm-macros"
 version = "0.3.1"
-source = "git+https://github.com/MabezDev/cortex-m-rtfm#a386c6b0d6f543ab8ba98a31965d2b5e43db3d42"
+source = "git+https://github.com/MabezDev/cortex-m-rtfm#454be9b036ae28dad6ec7901465daa21c546e80d"
 dependencies = [
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
