@@ -1,0 +1,13 @@
+language: rust
+cache: cargo
+rust:
+  - nightly
+env: RUN=BUILD
+before_script: rustup target add thumbv7m-none-eabi
+script: cargo build
+matrix:
+  include:
+    - rust: stable
+      env: RUN=FMT
+      before_script: rustup component add rustfmt-preview
+      script: cargo fmt --all -- --check
