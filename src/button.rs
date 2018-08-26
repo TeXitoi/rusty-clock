@@ -17,15 +17,23 @@ impl<T: ::embedded_hal::digital::InputPin> Button<T> {
     pub fn new(button: T) -> Self {
         Button {
             button,
-            state: State::High(0)
+            state: State::High(0),
         }
     }
     pub fn poll(&mut self) -> Event {
         use self::State::*;
         let value = self.button.is_high();
         match &mut self.state {
-            High(cnt) => if value { *cnt = 0 } else { *cnt += 1 },
-            Low(cnt) => if value { *cnt += 1 } else { *cnt = 0 },
+            High(cnt) => if value {
+                *cnt = 0
+            } else {
+                *cnt += 1
+            },
+            Low(cnt) => if value {
+                *cnt += 1
+            } else {
+                *cnt = 0
+            },
         }
         match self.state {
             High(cnt) if cnt >= 30 => {

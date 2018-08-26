@@ -9,12 +9,12 @@ extern crate cortex_m_rt as rt;
 extern crate bme280;
 extern crate cortex_m_rtfm as rtfm;
 extern crate cortex_m_semihosting as sh;
+extern crate embedded_hal;
 extern crate heapless;
 extern crate panic_semihosting;
 extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
-extern crate embedded_hal;
 
 use core::fmt::Write;
 use hal::prelude::*;
