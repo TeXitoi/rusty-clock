@@ -1,14 +1,6 @@
 [target.thumbv7m-none-eabi]
 runner = 'arm-none-eabi-gdb'
-rustflags = [
-  "-C", "link-arg=-Wl,-Tlink.x",
-  "-C", "link-arg=-nostartfiles",
-
-  # uncomment to use rustc LLD to link programs (a)
-  # "-C", "link-arg=-Tlink.x",
-  # "-C", "linker=lld",
-  # "-Z", "linker-flavor=ld.lld",
-]
+rustflags = ["-C", "link-arg=-Tlink.x"]
 
 [build]
 target = "thumbv7m-none-eabi"
