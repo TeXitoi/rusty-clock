@@ -92,7 +92,7 @@ version = "0.3.1"
 source = "git+https://github.com/MabezDev/cortex-m-rtfm#454be9b036ae28dad6ec7901465daa21c546e80d"
 dependencies = [
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "rtfm-syntax 0.3.3 (git+https://github.com/mabezdev/rtfm-syntax.git)",
  "syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -131,7 +131,7 @@ name = "failure_derive"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "synstructure 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -191,7 +191,7 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "0.4.13"
+version = "0.4.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "unicode-xid 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -212,7 +212,7 @@ name = "quote"
 version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -232,7 +232,7 @@ source = "git+https://github.com/mabezdev/rtfm-syntax.git#6f16160485059b20095803
 dependencies = [
  "either 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -300,7 +300,7 @@ name = "syn"
 version = "0.14.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicode-xid 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -310,7 +310,7 @@ name = "synstructure"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicode-xid 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -394,7 +394,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum nb 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "69f380b5fe9fab8c0d7a6a99cda23e2cc0463bedb2cbc3aada0813b98496ecdc"
 "checksum panic-itm 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6b571b82c62ba962d2434a8fdb66408e707536e5ff6d1aef2409606f1182bb08"
 "checksum panic-semihosting 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "52f64dcd9aebf9d40f8c40ab4400bab503c89997330b8d775c20f373bf0e13fc"
-"checksum proc-macro2 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)" = "ee5697238f0d893c7f0ecc59c0999f18d2af85e424de441178bcacc9f9e6cf67"
+"checksum proc-macro2 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)" = "295af93acfb1d5be29c16ca5b3f82d863836efd9cb0c14fd83811eb9a110e452"
 "checksum pwm-speaker 0.1.0 (git+https://github.com/TeXitoi/pwm-speaker)" = "<none>"
 "checksum quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)" = "dd636425967c33af890042c483632d33fa7a18f19ad1d7ea72e8998c6ef8dea5"
 "checksum r0 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "e2a38df5b15c8d5c7e8654189744d8e396bddc18ad48041a500ce52d6948941f"

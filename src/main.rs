@@ -18,6 +18,7 @@ extern crate stm32f103xx_rtc as rtc;
 use core::fmt::Write;
 use hal::prelude::*;
 use rt::ExceptionFrame;
+use rtc::datetime::DateTime;
 use rtfm::{app, Resource, Threshold};
 
 mod alarm;
@@ -30,7 +31,8 @@ type I2C = hal::i2c::BlockingI2c<
         hal::gpio::gpiob::PB7<hal::gpio::Alternate<hal::gpio::OpenDrain>>,
     ),
 >;
-type ButtonPin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::Floating>>;
+type Button1Pin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::Floating>>;
+type Button2Pin = hal::gpio::gpiob::PB1<hal::gpio::Input<hal::gpio::Floating>>;
 
 entry!(main);
 
@@ -41,17 +43,25 @@ app! {
         static RTC_DEV: rtc::Rtc;
         static BME280: bme280::BME280<I2C, hal::delay::Delay>;
         static ALARM: alarm::Alarm;
-        static BUTTON: button::Button<ButtonPin>;
+        static BUTTON1: button::Button<Button1Pin>;
+        static BUTTON2: button::Button<Button2Pin>;
+        static DISPLAY: sh::hio::HStdout;
     },
 
     tasks: {
+        EXTI1: {
+            path: render,
+            resources: [RTC_DEV, BME280, DISPLAY],
+            priority: 1,
+        },
         RTC: {
             path: handle_rtc,
-            resources: [RTC_DEV, BME280, ALARM],
+            resources: [RTC_DEV, ALARM],
+            priority: 2,
         },
         TIM3: {
             path: one_khz,
-            resources: [BUTTON, ALARM],
+            resources: [BUTTON1, BUTTON2, ALARM],
             priority: 3,
         },
     },
@@ -91,7 +101,8 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     pwm.enable();
     let speaker = pwm_speaker::Speaker::new(pwm, clocks);
 
-    let button_pin = gpiob.pb0.into_floating_input(&mut gpiob.crl);
+    let button1_pin = gpiob.pb0.into_floating_input(&mut gpiob.crl);
+    let button2_pin = gpiob.pb1.into_floating_input(&mut gpiob.crl);
 
     let mut timer = hal::timer::Timer::tim3(p.device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
     timer.listen(hal::timer::Event::Update);
@@ -99,7 +110,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
 
     let mut rtc = rtc::Rtc::new(p.device.RTC, &mut rcc.apb1, &mut p.device.PWR);
     if rtc.get_cnt() < 100 {
-        let today = rtc::datetime::DateTime {
+        let today = DateTime {
             year: 2018,
             month: 8,
             day: 25,
@@ -118,19 +129,18 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         RTC_DEV: rtc,
         BME280: bme280,
         ALARM: alarm::Alarm::new(speaker),
-        BUTTON: button::Button::new(button_pin),
+        BUTTON1: button::Button::new(button1_pin),
+        BUTTON2: button::Button::new(button2_pin),
+        DISPLAY: sh::hio::hstdout().unwrap(),
     }
 }
 
-fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
-    let mut hstdout = sh::hio::hstdout().unwrap();
+fn request_render() {
+    rtfm::set_pending(hal::stm32f103xx::Interrupt::EXTI1);
+}
+fn render(t: &mut rtfm::Threshold, mut r: EXTI1::Resources) {
     let mut s = heapless::String::<heapless::consts::U128>::new();
-    let datetime = rtc::datetime::DateTime::new(r.RTC_DEV.get_cnt());
-
-    if datetime.sec == 0 {
-        r.ALARM.claim_mut(t, |alarm, _t| alarm.play());
-    }
-
+    let datetime = DateTime::new(r.RTC_DEV.claim(t, |rtc, _| rtc.get_cnt()));
     writeln!(s, "{}", datetime).unwrap();
 
     let measurements = r.BME280.measure().unwrap();
@@ -146,9 +156,22 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
         (measurements.pressure / 100.) as i32,
         measurements.pressure as i32 % 100,
     ).unwrap();
+    if measurements.humidity != 0. {
+        writeln!(s, "humidity = {}%", measurements.humidity as i32,).unwrap();
+    }
 
-    hstdout.write_str(&s).unwrap();
+    r.DISPLAY.write_str(&s).unwrap();
+}
+
+fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
     r.RTC_DEV.clear_second_interrupt();
+
+    let datetime = DateTime::new(r.RTC_DEV.get_cnt());
+    if datetime.sec == 0 {
+        r.ALARM.claim_mut(t, |alarm, _t| alarm.play());
+    }
+
+    request_render();
 }
 
 fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
@@ -158,10 +181,10 @@ fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
             .modify(|_, w| w.uif().clear_bit());
     };
 
-    if let button::Event::Pressed = r.BUTTON.poll() {
+    if let button::Event::Pressed = r.BUTTON1.poll() {
         r.ALARM.stop();
     }
-
+    r.BUTTON2.poll();
     r.ALARM.poll();
 }
 
