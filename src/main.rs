@@ -17,6 +17,7 @@ extern crate stm32f103xx_rtc as rtc;
 
 use core::fmt::Write;
 use hal::prelude::*;
+use pwm_speaker::songs;
 use rt::ExceptionFrame;
 use rtc::datetime::DateTime;
 use rtfm::{app, Resource, Threshold};
@@ -168,7 +169,8 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
 
     let datetime = DateTime::new(r.RTC_DEV.get_cnt());
     if datetime.sec == 0 {
-        r.ALARM.claim_mut(t, |alarm, _t| alarm.play());
+        r.ALARM
+            .claim_mut(t, |alarm, _t| alarm.play(&songs::MARIO_THEME_INTRO, 5));
     }
 
     request_render();
