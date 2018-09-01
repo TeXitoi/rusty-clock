@@ -17,12 +17,15 @@ extern crate stm32f103xx_rtc as rtc;
 
 use core::fmt::Write;
 use hal::prelude::*;
+use heapless::consts::*;
+use heapless::Vec;
 use pwm_speaker::songs;
 use rt::ExceptionFrame;
 use rtc::datetime::DateTime;
 use rtfm::{app, Resource, Threshold};
 
 mod alarm;
+mod alarm_manager;
 mod button;
 
 type I2C = hal::i2c::BlockingI2c<
@@ -43,6 +46,7 @@ app! {
     resources: {
         static RTC_DEV: rtc::Rtc;
         static BME280: bme280::BME280<I2C, hal::delay::Delay>;
+        static ALARM_MANAGERS: Vec<alarm_manager::AlarmManager, U8> = Vec::new();
         static ALARM: alarm::Alarm;
         static BUTTON1: button::Button<Button1Pin>;
         static BUTTON2: button::Button<Button2Pin>;
@@ -57,7 +61,7 @@ app! {
         },
         RTC: {
             path: handle_rtc,
-            resources: [RTC_DEV, ALARM],
+            resources: [RTC_DEV, ALARM_MANAGERS, ALARM],
             priority: 2,
         },
         TIM3: {
@@ -68,7 +72,7 @@ app! {
     },
 }
 
-fn init(mut p: init::Peripherals) -> init::LateResources {
+fn init(mut p: init::Peripherals, r: init::Resources) -> init::LateResources {
     let mut flash = p.device.FLASH.constrain();
     let mut rcc = p.device.RCC.constrain();
     let mut afio = p.device.AFIO.constrain(&mut rcc.apb2);
@@ -113,10 +117,10 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     if rtc.get_cnt() < 100 {
         let today = DateTime {
             year: 2018,
-            month: 8,
-            day: 25,
+            month: 9,
+            day: 1,
             hour: 23,
-            min: 00,
+            min: 15,
             sec: 50,
             day_of_week: rtc::datetime::DayOfWeek::Wednesday,
         };
@@ -125,6 +129,12 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         }
     }
     rtc.enable_second_interrupt(&mut p.core.NVIC);
+
+    let mut alarm = alarm_manager::AlarmManager::default();
+    alarm.is_enable = true;
+    alarm.set_hour(23);
+    alarm.set_min(16);
+    let _ = r.ALARM_MANAGERS.push(alarm);
 
     init::LateResources {
         RTC_DEV: rtc,
@@ -168,7 +178,12 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
     r.RTC_DEV.clear_second_interrupt();
 
     let datetime = DateTime::new(r.RTC_DEV.get_cnt());
-    if datetime.sec == 0 {
+    if datetime.sec == 0
+        && r.ALARM_MANAGERS
+            .iter_mut()
+            .map(|am| am.must_ring(&datetime) as u8)
+            .sum::<u8>() > 0
+    {
         r.ALARM
             .claim_mut(t, |alarm, _t| alarm.play(&songs::MARIO_THEME_INTRO, 5));
     }

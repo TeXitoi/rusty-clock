@@ -20,7 +20,7 @@ name = "backtrace-sys"
 version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "cc 1.0.22 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cc 1.0.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -49,7 +49,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "cc"
-version = "1.0.22"
+version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -290,7 +290,7 @@ dependencies = [
 [[package]]
 name = "stm32f103xx-rtc"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#eb6e91586a620b489ca745ec00f1dd309bbde1d0"
+source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#e8a4cb4c3cca77209aadc3aed6e1147c5cb5133f"
 dependencies = [
  "stm32f103xx-hal 0.1.0 (git+https://github.com/ilya-epifanov/stm32f103xx-hal?rev=3a8d64d3605b5eac9fd15eea0ba25319fbb8375c)",
 ]
@@ -376,7 +376,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum bme280 0.1.0 (git+https://github.com/TeXitoi/bme280-rs?branch=add-bmp280)" = "<none>"
 "checksum byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "90492c5858dd7d2e78691cfb89f90d273a2800fc11d98f60786e5d87e2f83781"
 "checksum cast 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "926013f2860c46252efceabb19f4a6b308197505082c609025aa6706c011d427"
-"checksum cc 1.0.22 (registry+https://github.com/rust-lang/crates.io-index)" = "4a6007c146fdd28d4512a794b07ffe9d8e89e6bf86e2e0c4ddff2e1fb54a0007"
+"checksum cc 1.0.23 (registry+https://github.com/rust-lang/crates.io-index)" = "c37f0efaa4b9b001fa6f02d4b644dee4af97d3414df07c51e3e4f015f3a3e131"
 "checksum cfg-if 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "0c4e7bb64a8ebb0d856483e1e682ea3422f883c5f5615a90d51a2c82fe87fdd3"
 "checksum cortex-m 0.5.6 (registry+https://github.com/rust-lang/crates.io-index)" = "9ba6ba839428cb647fea7d4c607825f98c48a4ccd52c0199a19cfc6ef8258cb4"
 "checksum cortex-m-rt 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "71738be48d61e40c8a638294efbf6ded5bef29def972ccb07984bf7630cc0bd4"
