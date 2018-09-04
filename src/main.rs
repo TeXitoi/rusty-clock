@@ -15,7 +15,6 @@ extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
 
-use core::fmt::Write;
 use hal::prelude::*;
 use heapless::consts::*;
 use heapless::Vec;
@@ -27,6 +26,7 @@ use rtfm::{app, Resource, Threshold};
 mod alarm;
 mod alarm_manager;
 mod button;
+mod ui;
 
 type I2C = hal::i2c::BlockingI2c<
     hal::stm32f103xx::I2C1,
@@ -51,17 +51,18 @@ app! {
         static BUTTON1: button::Button<Button1Pin>;
         static BUTTON2: button::Button<Button2Pin>;
         static DISPLAY: sh::hio::HStdout;
+        static UI: ui::Model;
     },
 
     tasks: {
         EXTI1: {
             path: render,
-            resources: [RTC_DEV, BME280, DISPLAY],
+            resources: [UI, DISPLAY],
             priority: 1,
         },
         RTC: {
             path: handle_rtc,
-            resources: [RTC_DEV, ALARM_MANAGERS, ALARM],
+            resources: [RTC_DEV, BME280, ALARM_MANAGERS, ALARM, UI],
             priority: 2,
         },
         TIM3: {
@@ -143,35 +144,16 @@ fn init(mut p: init::Peripherals, r: init::Resources) -> init::LateResources {
         BUTTON1: button::Button::new(button1_pin),
         BUTTON2: button::Button::new(button2_pin),
         DISPLAY: sh::hio::hstdout().unwrap(),
+        UI: ui::Model::init(),
     }
 }
 
-fn request_render() {
+pub fn request_render() {
     rtfm::set_pending(hal::stm32f103xx::Interrupt::EXTI1);
 }
 fn render(t: &mut rtfm::Threshold, mut r: EXTI1::Resources) {
-    let mut s = heapless::String::<heapless::consts::U128>::new();
-    let datetime = DateTime::new(r.RTC_DEV.claim(t, |rtc, _| rtc.get_cnt()));
-    writeln!(s, "{}", datetime).unwrap();
-
-    let measurements = r.BME280.measure().unwrap();
-    writeln!(
-        s,
-        "Temperature = {}.{:02}°C",
-        (measurements.temperature) as i32,
-        (measurements.temperature * 100.) as i32 % 100,
-    ).unwrap();
-    writeln!(
-        s,
-        "Pressure = {}.{:02}hPa",
-        (measurements.pressure / 100.) as i32,
-        measurements.pressure as i32 % 100,
-    ).unwrap();
-    if measurements.humidity != 0. {
-        writeln!(s, "humidity = {}%", measurements.humidity as i32,).unwrap();
-    }
-
-    r.DISPLAY.write_str(&s).unwrap();
+    let model = r.UI.claim(t, |model, _| model.clone());
+    model.view(&mut r).unwrap();
 }
 
 fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
@@ -188,7 +170,9 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
             .claim_mut(t, |alarm, _t| alarm.play(&songs::MARIO_THEME_INTRO, 5));
     }
 
-    request_render();
+    r.UI.update(ui::Msg::DateTime(datetime));
+    r.UI
+        .update(ui::Msg::Environment(r.BME280.measure().unwrap()));
 }
 
 fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {

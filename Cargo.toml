@@ -11,7 +11,7 @@ cortex-m-rt = { version = "0.5", features = ["device"] }
 cortex-m-rtfm = { git = "https://github.com/MabezDev/cortex-m-rtfm", branch = "master" }
 panic-semihosting = "0.3"
 cortex-m-semihosting = "0.3"
-bme280 = { git = "https://github.com/TeXitoi/bme280-rs", branch = "add-bmp280" }
+bme280 = "0.1.1"
 stm32f103xx-rtc = { git = "https://github.com/TeXitoi/stm32f103xx-rtc", branch = "master" }
 heapless = "0.3.6"
 pwm-speaker = { git = "https://github.com/TeXitoi/pwm-speaker" }
