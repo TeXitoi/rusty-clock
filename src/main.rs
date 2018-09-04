@@ -67,7 +67,7 @@ app! {
         },
         TIM3: {
             path: one_khz,
-            resources: [BUTTON1, BUTTON2, ALARM],
+            resources: [BUTTON1, BUTTON2, ALARM, UI],
             priority: 3,
         },
     },
@@ -169,10 +169,13 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
         r.ALARM
             .claim_mut(t, |alarm, _t| alarm.play(&songs::MARIO_THEME_INTRO, 5));
     }
-
-    r.UI.update(ui::Msg::DateTime(datetime));
     r.UI
-        .update(ui::Msg::Environment(r.BME280.measure().unwrap()));
+        .claim_mut(t, |model, _| model.update(ui::Msg::DateTime(datetime)));
+
+    let measurements = r.BME280.measure().unwrap();
+    r.UI.claim_mut(t, |model, _| {
+        model.update(ui::Msg::Environment(measurements))
+    });
 }
 
 fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
@@ -184,8 +187,11 @@ fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
 
     if let button::Event::Pressed = r.BUTTON1.poll() {
         r.ALARM.stop();
+        r.UI.update(ui::Msg::ButtonOk);
     }
-    r.BUTTON2.poll();
+    if let button::Event::Pressed = r.BUTTON2.poll() {
+        r.UI.update(ui::Msg::ButtonPlus);
+    }
     r.ALARM.poll();
 }
 

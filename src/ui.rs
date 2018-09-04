@@ -6,6 +6,8 @@ use rtc::datetime;
 pub enum Msg {
     DateTime(datetime::DateTime),
     Environment(::bme280::Measurements<<::I2C as WriteRead>::Error>),
+    ButtonOk,
+    ButtonPlus,
 }
 
 struct Centi(i32);
@@ -15,7 +17,28 @@ impl fmt::Display for Centi {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
+enum Screen {
+    Clock,
+    Menu(MenuElt),
+    SetClock(datetime::DateTime),
+}
+#[derive(Debug, Clone)]
+enum MenuElt {
+    Clock,
+    SetClock,
+}
+impl MenuElt {
+    fn next(&self) -> MenuElt {
+        use self::MenuElt::*;
+        match *self {
+            Clock => SetClock,
+            SetClock => Clock,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Model {
     now: datetime::DateTime,
     /// unit: Pa
@@ -24,6 +47,7 @@ pub struct Model {
     temperature: i16,
     /// unit: %
     humidity: u8,
+    screen: Screen,
 }
 
 impl Model {
@@ -33,9 +57,11 @@ impl Model {
             pressure: 0,
             temperature: 0,
             humidity: 0,
+            screen: Screen::Clock,
         }
     }
     pub fn update(&mut self, msg: Msg) {
+        use self::Screen::*;
         match msg {
             Msg::DateTime(datetime) => self.now = datetime,
             Msg::Environment(measurements) => {
@@ -43,17 +69,36 @@ impl Model {
                 self.temperature = (measurements.temperature * 100.) as i16;
                 self.humidity = measurements.humidity as u8;
             }
+            Msg::ButtonOk => match self.screen {
+                Clock => self.screen = Menu(MenuElt::Clock),
+                Menu(MenuElt::Clock) => self.screen = Clock,
+                Menu(MenuElt::SetClock) => self.screen = SetClock(self.now.clone()),
+                SetClock(_) => self.screen = Clock,
+            },
+            Msg::ButtonPlus => match &mut self.screen {
+                Menu(elt) => *elt = elt.next(),
+                _ => {}
+            },
         }
         ::request_render();
     }
     pub fn view(&self, r: &mut ::EXTI1::Resources) -> fmt::Result {
+        use self::Screen::*;
         let mut s = heapless::String::<heapless::consts::U128>::new();
+
         writeln!(s)?;
         writeln!(s, "{}", self.now)?;
-        writeln!(s, "Temperature = {}°C", Centi(self.temperature as i32))?;
-        writeln!(s, "Pressure = {}hPa", Centi(self.pressure as i32))?;
-        if self.humidity != 0 {
-            writeln!(s, "humidity = {}%", self.humidity)?;
+
+        match &self.screen {
+            Clock => {
+                writeln!(s, "Temperature = {}°C", Centi(self.temperature as i32))?;
+                writeln!(s, "Pressure = {}hPa", Centi(self.pressure as i32))?;
+                if self.humidity != 0 {
+                    writeln!(s, "humidity = {}%", self.humidity)?;
+                }
+            }
+            Menu(elt) => writeln!(s, "Menu: {:?}", elt)?,
+            SetClock(datetime) => writeln!(s, "Set clock: {}", datetime)?,
         }
 
         r.DISPLAY.write_str(&s)
