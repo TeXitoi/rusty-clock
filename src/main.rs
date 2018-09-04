@@ -15,6 +15,7 @@ extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
 
+use core::fmt::Write;
 use hal::prelude::*;
 use heapless::consts::*;
 use heapless::Vec;
@@ -26,6 +27,7 @@ use rtfm::{app, Resource, Threshold};
 mod alarm;
 mod alarm_manager;
 mod button;
+mod msg_queue;
 mod ui;
 
 type I2C = hal::i2c::BlockingI2c<
@@ -46,12 +48,13 @@ app! {
     resources: {
         static RTC_DEV: rtc::Rtc;
         static BME280: bme280::BME280<I2C, hal::delay::Delay>;
-        static ALARM_MANAGERS: Vec<alarm_manager::AlarmManager, U8> = Vec::new();
+        static ALARM_MANAGERS: [alarm_manager::AlarmManager; 8];
         static ALARM: alarm::Alarm;
         static BUTTON1: button::Button<Button1Pin>;
         static BUTTON2: button::Button<Button2Pin>;
         static DISPLAY: sh::hio::HStdout;
         static UI: ui::Model;
+        static MSG_QUEUE: msg_queue::MsgQueue;
     },
 
     tasks: {
@@ -60,20 +63,25 @@ app! {
             resources: [UI, DISPLAY],
             priority: 1,
         },
+        EXTI2: {
+            path: msgs,
+            resources: [UI, MSG_QUEUE, RTC_DEV],
+            priority: 2,
+        },
         RTC: {
             path: handle_rtc,
-            resources: [RTC_DEV, BME280, ALARM_MANAGERS, ALARM, UI],
-            priority: 2,
+            resources: [RTC_DEV, BME280, ALARM_MANAGERS, ALARM, MSG_QUEUE],
+            priority: 3,
         },
         TIM3: {
             path: one_khz,
-            resources: [BUTTON1, BUTTON2, ALARM, UI],
-            priority: 3,
+            resources: [BUTTON1, BUTTON2, ALARM, MSG_QUEUE],
+            priority: 4,
         },
     },
 }
 
-fn init(mut p: init::Peripherals, r: init::Resources) -> init::LateResources {
+fn init(mut p: init::Peripherals) -> init::LateResources {
     let mut flash = p.device.FLASH.constrain();
     let mut rcc = p.device.RCC.constrain();
     let mut afio = p.device.AFIO.constrain(&mut rcc.apb2);
@@ -135,7 +143,6 @@ fn init(mut p: init::Peripherals, r: init::Resources) -> init::LateResources {
     alarm.is_enable = true;
     alarm.set_hour(23);
     alarm.set_min(16);
-    let _ = r.ALARM_MANAGERS.push(alarm);
 
     init::LateResources {
         RTC_DEV: rtc,
@@ -145,15 +152,46 @@ fn init(mut p: init::Peripherals, r: init::Resources) -> init::LateResources {
         BUTTON2: button::Button::new(button2_pin),
         DISPLAY: sh::hio::hstdout().unwrap(),
         UI: ui::Model::init(),
+        MSG_QUEUE: msg_queue::MsgQueue::new(),
+        ALARM_MANAGERS: [
+            alarm,
+            alarm_manager::AlarmManager::default(),
+            alarm_manager::AlarmManager::default(),
+            alarm_manager::AlarmManager::default(),
+            alarm_manager::AlarmManager::default(),
+            alarm_manager::AlarmManager::default(),
+            alarm_manager::AlarmManager::default(),
+            alarm_manager::AlarmManager::default(),
+        ],
     }
 }
 
-pub fn request_render() {
+pub fn msgs(t: &mut rtfm::Threshold, mut r: EXTI2::Resources) {
+    loop {
+        let msgs = r.MSG_QUEUE.claim_mut(t, |q, _| q.get());
+        if msgs.is_empty() {
+            break;
+        }
+        let cmds: Vec<_, U16> = r.UI.claim_mut(t, |model, _| {
+            msgs.into_iter().flat_map(|msg| model.update(msg)).collect()
+        });
+        for cmd in cmds {
+            use ui::Cmd::*;
+            match cmd {
+                UpdateRtc(dt) => if let Some(epoch) = dt.to_epoch() {
+                    r.RTC_DEV.claim_mut(t, |rtc, _| {
+                        let _ = rtc.set_cnt(epoch);
+                    });
+                },
+            }
+        }
+    }
     rtfm::set_pending(hal::stm32f103xx::Interrupt::EXTI1);
 }
 fn render(t: &mut rtfm::Threshold, mut r: EXTI1::Resources) {
     let model = r.UI.claim(t, |model, _| model.clone());
-    model.view(&mut r).unwrap();
+    let s = model.view().unwrap();
+    r.DISPLAY.write_str(&s).unwrap();
 }
 
 fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
@@ -169,13 +207,12 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
         r.ALARM
             .claim_mut(t, |alarm, _t| alarm.play(&songs::MARIO_THEME_INTRO, 5));
     }
-    r.UI
-        .claim_mut(t, |model, _| model.update(ui::Msg::DateTime(datetime)));
+    r.MSG_QUEUE
+        .claim_mut(t, |q, _| q.push(ui::Msg::DateTime(datetime)));
 
     let measurements = r.BME280.measure().unwrap();
-    r.UI.claim_mut(t, |model, _| {
-        model.update(ui::Msg::Environment(measurements))
-    });
+    r.MSG_QUEUE
+        .claim_mut(t, |q, _| q.push(ui::Msg::Environment(measurements)));
 }
 
 fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
@@ -187,10 +224,10 @@ fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
 
     if let button::Event::Pressed = r.BUTTON1.poll() {
         r.ALARM.stop();
-        r.UI.update(ui::Msg::ButtonOk);
+        r.MSG_QUEUE.push(ui::Msg::ButtonOk);
     }
     if let button::Event::Pressed = r.BUTTON2.poll() {
-        r.UI.update(ui::Msg::ButtonPlus);
+        r.MSG_QUEUE.push(ui::Msg::ButtonPlus);
     }
     r.ALARM.poll();
 }

@@ -1,6 +1,6 @@
 use core::fmt::{self, Write};
 use embedded_hal::blocking::i2c::WriteRead;
-use heapless;
+use heapless::{consts::*, String, Vec};
 use rtc::datetime;
 
 pub enum Msg {
@@ -10,6 +10,10 @@ pub enum Msg {
     ButtonPlus,
 }
 
+pub enum Cmd {
+    UpdateRtc(datetime::DateTime),
+}
+
 struct Centi(i32);
 impl fmt::Display for Centi {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -17,13 +21,13 @@ impl fmt::Display for Centi {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 enum Screen {
     Clock,
     Menu(MenuElt),
     SetClock(EditDateTime),
 }
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 enum MenuElt {
     Clock,
     SetClock,
@@ -37,12 +41,20 @@ impl MenuElt {
         }
     }
 }
-#[derive(Debug, Clone)]
+impl fmt::Display for MenuElt {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            MenuElt::Clock => f.write_str("clock"),
+            MenuElt::SetClock => f.write_str("set clock"),
+        }
+    }
+}
+#[derive(Clone)]
 struct EditDateTime {
     datetime: datetime::DateTime,
     state: EditDateTimeState,
 }
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 enum EditDateTimeState {
     Year,
     Month,
@@ -97,7 +109,7 @@ impl fmt::Display for EditDateTime {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Model {
     now: datetime::DateTime,
     /// unit: Pa
@@ -119,8 +131,10 @@ impl Model {
             screen: Screen::Clock,
         }
     }
-    pub fn update(&mut self, msg: Msg) {
+    pub fn update(&mut self, msg: Msg) -> Vec<Cmd, U4> {
         use self::Screen::*;
+        let mut cmds = Vec::new();
+
         match msg {
             Msg::DateTime(datetime) => self.now = datetime,
             Msg::Environment(measurements) => {
@@ -137,8 +151,10 @@ impl Model {
                         dt.sec = 0;
                         SetClock(EditDateTime::new(dt))
                     }
-                    SetClock(mut edit) => if let Some(_dt) = edit.ok() {
-                        // TODO: change now
+                    SetClock(mut edit) => if let Some(dt) = edit.ok() {
+                        if let Err(_) = cmds.push(Cmd::UpdateRtc(dt)) {
+                            panic!("cmds too small");
+                        }
                         Clock
                     } else {
                         SetClock(edit)
@@ -151,11 +167,11 @@ impl Model {
                 _ => {}
             },
         }
-        ::request_render();
+        cmds
     }
-    pub fn view(&self, r: &mut ::EXTI1::Resources) -> fmt::Result {
+    pub fn view(&self) -> Result<String<U128>, fmt::Error> {
         use self::Screen::*;
-        let mut s = heapless::String::<heapless::consts::U128>::new();
+        let mut s = String::new();
 
         writeln!(s)?;
         writeln!(s, "{}", self.now)?;
@@ -168,10 +184,10 @@ impl Model {
                     writeln!(s, "humidity = {}%", self.humidity)?;
                 }
             }
-            Menu(elt) => writeln!(s, "Menu: {:?}", elt)?,
+            Menu(elt) => writeln!(s, "Menu: {}", elt)?,
             SetClock(datetime) => writeln!(s, "Set clock: {}", datetime)?,
         }
 
-        r.DISPLAY.write_str(&s)
+        Ok(s)
     }
 }
