@@ -21,7 +21,7 @@ impl fmt::Display for Centi {
 enum Screen {
     Clock,
     Menu(MenuElt),
-    SetClock(datetime::DateTime),
+    SetClock(EditDateTime),
 }
 #[derive(Debug, Clone)]
 enum MenuElt {
@@ -34,6 +34,65 @@ impl MenuElt {
         match *self {
             Clock => SetClock,
             SetClock => Clock,
+        }
+    }
+}
+#[derive(Debug, Clone)]
+struct EditDateTime {
+    datetime: datetime::DateTime,
+    state: EditDateTimeState,
+}
+#[derive(Debug, Clone)]
+enum EditDateTimeState {
+    Year,
+    Month,
+    Day,
+    Hour,
+    Min,
+}
+impl EditDateTime {
+    fn new(datetime: datetime::DateTime) -> Self {
+        Self {
+            datetime,
+            state: EditDateTimeState::Year,
+        }
+    }
+    fn next(&mut self) {
+        use self::EditDateTimeState::*;
+        match self.state {
+            Year => {
+                self.datetime.year += 1;
+                if self.datetime.year > 2100 {
+                    self.datetime.year = 2000;
+                }
+            }
+            Month => self.datetime.month = self.datetime.month % 12 + 1,
+            Day => self.datetime.day = self.datetime.day % 31 + 1,
+            Hour => self.datetime.hour = (self.datetime.hour + 1) % 24,
+            Min => self.datetime.min = (self.datetime.min + 1) % 60,
+        }
+    }
+    fn ok(&mut self) -> Option<datetime::DateTime> {
+        use self::EditDateTimeState::*;
+        match self.state {
+            Year => self.state = Month,
+            Month => self.state = Day,
+            Day => self.state = Hour,
+            Hour => self.state = Min,
+            Min => return Some(self.datetime.clone()),
+        }
+        None
+    }
+}
+impl fmt::Display for EditDateTime {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::EditDateTimeState::*;
+        match self.state {
+            Year => write!(f, "year: {}", self.datetime.year),
+            Month => write!(f, "month: {}", self.datetime.month),
+            Day => write!(f, "day: {}", self.datetime.day),
+            Hour => write!(f, "hour: {}", self.datetime.hour),
+            Min => write!(f, "min: {}", self.datetime.min),
         }
     }
 }
@@ -69,14 +128,26 @@ impl Model {
                 self.temperature = (measurements.temperature * 100.) as i16;
                 self.humidity = measurements.humidity as u8;
             }
-            Msg::ButtonOk => match self.screen {
-                Clock => self.screen = Menu(MenuElt::Clock),
-                Menu(MenuElt::Clock) => self.screen = Clock,
-                Menu(MenuElt::SetClock) => self.screen = SetClock(self.now.clone()),
-                SetClock(_) => self.screen = Clock,
-            },
+            Msg::ButtonOk => {
+                self.screen = match ::core::mem::replace(&mut self.screen, Clock) {
+                    Clock => Menu(MenuElt::Clock),
+                    Menu(MenuElt::Clock) => Clock,
+                    Menu(MenuElt::SetClock) => {
+                        let mut dt = self.now.clone();
+                        dt.sec = 0;
+                        SetClock(EditDateTime::new(dt))
+                    }
+                    SetClock(mut edit) => if let Some(_dt) = edit.ok() {
+                        // TODO: change now
+                        Clock
+                    } else {
+                        SetClock(edit)
+                    },
+                }
+            }
             Msg::ButtonPlus => match &mut self.screen {
                 Menu(elt) => *elt = elt.next(),
+                SetClock(edit) => edit.next(),
                 _ => {}
             },
         }
