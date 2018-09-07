@@ -6,6 +6,7 @@ use rtc::datetime;
 pub enum Msg {
     DateTime(datetime::DateTime),
     Environment(::bme280::Measurements<<::I2C as WriteRead>::Error>),
+    ButtonMinus,
     ButtonOk,
     ButtonPlus,
 }
@@ -34,6 +35,13 @@ enum MenuElt {
 }
 impl MenuElt {
     fn next(&self) -> MenuElt {
+        use self::MenuElt::*;
+        match *self {
+            Clock => SetClock,
+            SetClock => Clock,
+        }
+    }
+    fn prev(&self) -> MenuElt {
         use self::MenuElt::*;
         match *self {
             Clock => SetClock,
@@ -74,14 +82,29 @@ impl EditDateTime {
         match self.state {
             Year => {
                 self.datetime.year += 1;
-                if self.datetime.year > 2100 {
-                    self.datetime.year = 2000;
+                if self.datetime.year > 2105 {
+                    self.datetime.year = 1970;
                 }
             }
             Month => self.datetime.month = self.datetime.month % 12 + 1,
             Day => self.datetime.day = self.datetime.day % 31 + 1,
             Hour => self.datetime.hour = (self.datetime.hour + 1) % 24,
             Min => self.datetime.min = (self.datetime.min + 1) % 60,
+        }
+    }
+    fn prev(&mut self) {
+        use self::EditDateTimeState::*;
+        match self.state {
+            Year => {
+                self.datetime.year -= 1;
+                if self.datetime.year < 1970 {
+                    self.datetime.year = 2105;
+                }
+            }
+            Month => self.datetime.month = (self.datetime.month + 12 - 2) % 12 + 1,
+            Day => self.datetime.day = (self.datetime.day + 31 - 2) % 31 + 1,
+            Hour => self.datetime.hour = (self.datetime.hour + 24 - 1) % 24,
+            Min => self.datetime.min = (self.datetime.min + 60 - 1) % 60,
         }
     }
     fn ok(&mut self) -> Option<datetime::DateTime> {
@@ -164,6 +187,11 @@ impl Model {
             Msg::ButtonPlus => match &mut self.screen {
                 Menu(elt) => *elt = elt.next(),
                 SetClock(edit) => edit.next(),
+                _ => {}
+            },
+            Msg::ButtonMinus => match &mut self.screen {
+                Menu(elt) => *elt = elt.prev(),
+                SetClock(edit) => edit.prev(),
                 _ => {}
             },
         }

@@ -37,6 +37,7 @@ type I2C = hal::i2c::BlockingI2c<
         hal::gpio::gpiob::PB7<hal::gpio::Alternate<hal::gpio::OpenDrain>>,
     ),
 >;
+type Button0Pin = hal::gpio::gpioa::PA7<hal::gpio::Input<hal::gpio::Floating>>;
 type Button1Pin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::Floating>>;
 type Button2Pin = hal::gpio::gpiob::PB1<hal::gpio::Input<hal::gpio::Floating>>;
 
@@ -50,6 +51,7 @@ app! {
         static BME280: bme280::BME280<I2C, hal::delay::Delay>;
         static ALARM_MANAGERS: [alarm_manager::AlarmManager; 8];
         static ALARM: alarm::Alarm;
+        static BUTTON0: button::Button<Button0Pin>;
         static BUTTON1: button::Button<Button1Pin>;
         static BUTTON2: button::Button<Button2Pin>;
         static DISPLAY: sh::hio::HStdout;
@@ -75,7 +77,7 @@ app! {
         },
         TIM3: {
             path: one_khz,
-            resources: [BUTTON1, BUTTON2, ALARM, MSG_QUEUE],
+            resources: [BUTTON0, BUTTON1, BUTTON2, ALARM, MSG_QUEUE],
             priority: 4,
         },
     },
@@ -115,6 +117,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     pwm.enable();
     let speaker = pwm_speaker::Speaker::new(pwm, clocks);
 
+    let button0_pin = gpioa.pa7.into_floating_input(&mut gpioa.crl);
     let button1_pin = gpiob.pb0.into_floating_input(&mut gpiob.crl);
     let button2_pin = gpiob.pb1.into_floating_input(&mut gpiob.crl);
 
@@ -130,7 +133,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
             day: 1,
             hour: 23,
             min: 15,
-            sec: 50,
+            sec: 40,
             day_of_week: rtc::datetime::DayOfWeek::Wednesday,
         };
         if let Some(epoch) = today.to_epoch() {
@@ -148,6 +151,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         RTC_DEV: rtc,
         BME280: bme280,
         ALARM: alarm::Alarm::new(speaker),
+        BUTTON0: button::Button::new(button0_pin),
         BUTTON1: button::Button::new(button1_pin),
         BUTTON2: button::Button::new(button2_pin),
         DISPLAY: sh::hio::hstdout().unwrap(),
@@ -172,9 +176,7 @@ pub fn msgs(t: &mut rtfm::Threshold, mut r: EXTI2::Resources) {
         if msgs.is_empty() {
             break;
         }
-        let cmds: Vec<_, U16> = r.UI.claim_mut(t, |model, _| {
-            msgs.into_iter().flat_map(|msg| model.update(msg)).collect()
-        });
+        let cmds: Vec<_, U16> = msgs.into_iter().flat_map(|msg| r.UI.update(msg)).collect();
         for cmd in cmds {
             use ui::Cmd::*;
             match cmd {
@@ -222,6 +224,9 @@ fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
             .modify(|_, w| w.uif().clear_bit());
     };
 
+    if let button::Event::Pressed = r.BUTTON0.poll() {
+        r.MSG_QUEUE.push(ui::Msg::ButtonMinus);
+    }
     if let button::Event::Pressed = r.BUTTON1.poll() {
         r.ALARM.stop();
         r.MSG_QUEUE.push(ui::Msg::ButtonOk);
