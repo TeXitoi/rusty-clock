@@ -15,6 +15,94 @@ pub enum Cmd {
     UpdateRtc(datetime::DateTime),
 }
 
+#[derive(Clone)]
+pub struct Model {
+    now: datetime::DateTime,
+    /// unit: Pa
+    pressure: u32,
+    /// unit: c°C
+    temperature: i16,
+    /// unit: %
+    humidity: u8,
+    screen: Screen,
+}
+
+impl Model {
+    pub fn init() -> Self {
+        Self {
+            now: datetime::DateTime::new(0),
+            pressure: 0,
+            temperature: 0,
+            humidity: 0,
+            screen: Screen::Clock,
+        }
+    }
+    pub fn update(&mut self, msg: Msg) -> Vec<Cmd, U4> {
+        use self::Screen::*;
+        let mut cmds = Vec::new();
+
+        match msg {
+            Msg::DateTime(datetime) => self.now = datetime,
+            Msg::Environment(measurements) => {
+                self.pressure = measurements.pressure as u32;
+                self.temperature = (measurements.temperature * 100.) as i16;
+                self.humidity = measurements.humidity as u8;
+            }
+            Msg::ButtonOk => {
+                self.screen = match ::core::mem::replace(&mut self.screen, Clock) {
+                    Clock => Menu(MenuElt::Clock),
+                    Menu(MenuElt::Clock) => Clock,
+                    Menu(MenuElt::SetClock) => {
+                        let mut dt = self.now.clone();
+                        dt.sec = 0;
+                        SetClock(EditDateTime::new(dt))
+                    }
+                    SetClock(mut edit) => if let Some(dt) = edit.ok() {
+                        if let Err(_) = cmds.push(Cmd::UpdateRtc(dt)) {
+                            panic!("cmds too small");
+                        }
+                        Clock
+                    } else {
+                        SetClock(edit)
+                    },
+                }
+            }
+            Msg::ButtonPlus => match &mut self.screen {
+                Menu(elt) => *elt = elt.next(),
+                SetClock(edit) => edit.next(),
+                _ => {}
+            },
+            Msg::ButtonMinus => match &mut self.screen {
+                Menu(elt) => *elt = elt.prev(),
+                SetClock(edit) => edit.prev(),
+                _ => {}
+            },
+        }
+        cmds
+    }
+    pub fn view(&self) -> Result<String<U128>, fmt::Error> {
+        use self::Screen::*;
+        let mut s = String::new();
+
+        writeln!(s)?;
+        writeln!(s, "{}", self.now)?;
+
+        match &self.screen {
+            Clock => {
+                writeln!(s, "Temperature = {}°C", Centi(self.temperature as i32))?;
+                writeln!(s, "Pressure = {}hPa", Centi(self.pressure as i32))?;
+                if self.humidity != 0 {
+                    writeln!(s, "humidity = {}%", self.humidity)?;
+                }
+            }
+            Menu(elt) => writeln!(s, "Menu: {}", elt)?,
+            SetClock(datetime) => writeln!(s, "Set clock: {}", datetime)?,
+        }
+
+        Ok(s)
+    }
+}
+
 struct Centi(i32);
 impl fmt::Display for Centi {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -129,93 +217,5 @@ impl fmt::Display for EditDateTime {
             Hour => write!(f, "hour: {}", self.datetime.hour),
             Min => write!(f, "min: {}", self.datetime.min),
         }
-    }
-}
-
-#[derive(Clone)]
-pub struct Model {
-    now: datetime::DateTime,
-    /// unit: Pa
-    pressure: u32,
-    /// unit: c°C
-    temperature: i16,
-    /// unit: %
-    humidity: u8,
-    screen: Screen,
-}
-
-impl Model {
-    pub fn init() -> Self {
-        Self {
-            now: datetime::DateTime::new(0),
-            pressure: 0,
-            temperature: 0,
-            humidity: 0,
-            screen: Screen::Clock,
-        }
-    }
-    pub fn update(&mut self, msg: Msg) -> Vec<Cmd, U4> {
-        use self::Screen::*;
-        let mut cmds = Vec::new();
-
-        match msg {
-            Msg::DateTime(datetime) => self.now = datetime,
-            Msg::Environment(measurements) => {
-                self.pressure = measurements.pressure as u32;
-                self.temperature = (measurements.temperature * 100.) as i16;
-                self.humidity = measurements.humidity as u8;
-            }
-            Msg::ButtonOk => {
-                self.screen = match ::core::mem::replace(&mut self.screen, Clock) {
-                    Clock => Menu(MenuElt::Clock),
-                    Menu(MenuElt::Clock) => Clock,
-                    Menu(MenuElt::SetClock) => {
-                        let mut dt = self.now.clone();
-                        dt.sec = 0;
-                        SetClock(EditDateTime::new(dt))
-                    }
-                    SetClock(mut edit) => if let Some(dt) = edit.ok() {
-                        if let Err(_) = cmds.push(Cmd::UpdateRtc(dt)) {
-                            panic!("cmds too small");
-                        }
-                        Clock
-                    } else {
-                        SetClock(edit)
-                    },
-                }
-            }
-            Msg::ButtonPlus => match &mut self.screen {
-                Menu(elt) => *elt = elt.next(),
-                SetClock(edit) => edit.next(),
-                _ => {}
-            },
-            Msg::ButtonMinus => match &mut self.screen {
-                Menu(elt) => *elt = elt.prev(),
-                SetClock(edit) => edit.prev(),
-                _ => {}
-            },
-        }
-        cmds
-    }
-    pub fn view(&self) -> Result<String<U128>, fmt::Error> {
-        use self::Screen::*;
-        let mut s = String::new();
-
-        writeln!(s)?;
-        writeln!(s, "{}", self.now)?;
-
-        match &self.screen {
-            Clock => {
-                writeln!(s, "Temperature = {}°C", Centi(self.temperature as i32))?;
-                writeln!(s, "Pressure = {}hPa", Centi(self.pressure as i32))?;
-                if self.humidity != 0 {
-                    writeln!(s, "humidity = {}%", self.humidity)?;
-                }
-            }
-            Menu(elt) => writeln!(s, "Menu: {}", elt)?,
-            SetClock(datetime) => writeln!(s, "Set clock: {}", datetime)?,
-        }
-
-        Ok(s)
     }
 }
