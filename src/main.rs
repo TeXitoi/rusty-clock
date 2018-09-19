@@ -251,6 +251,7 @@ fn render(t: &mut rtfm::Threshold, mut r: EXTI1::Resources) {
 
 fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
     r.RTC_DEV.clear_second_interrupt();
+    r.RTC_DEV.sync();
 
     let datetime = DateTime::new(r.RTC_DEV.get_cnt());
     if datetime.sec == 0
