@@ -7,15 +7,18 @@ extern crate cortex_m;
 extern crate cortex_m_rt as rt;
 extern crate bme280;
 extern crate cortex_m_rtfm as rtfm;
-extern crate cortex_m_semihosting as sh;
 extern crate embedded_hal;
 extern crate heapless;
+extern crate il3820;
 extern crate panic_semihosting;
 extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
+extern crate embedded_graphics;
 
-use core::fmt::Write;
+use embedded_graphics::coord::Coord;
+use embedded_graphics::fonts::Font8x16;
+use embedded_graphics::prelude::*;
 use hal::prelude::*;
 use heapless::consts::*;
 use heapless::Vec;
@@ -40,6 +43,21 @@ type I2C = hal::i2c::BlockingI2c<
 type Button0Pin = hal::gpio::gpioa::PA7<hal::gpio::Input<hal::gpio::Floating>>;
 type Button1Pin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::Floating>>;
 type Button2Pin = hal::gpio::gpiob::PB1<hal::gpio::Input<hal::gpio::Floating>>;
+type Spi = hal::spi::Spi<
+    hal::stm32f103xx::SPI2,
+    (
+        hal::gpio::gpiob::PB13<hal::gpio::Alternate<hal::gpio::PushPull>>,
+        hal::gpio::gpiob::PB14<hal::gpio::Input<hal::gpio::Floating>>,
+        hal::gpio::gpiob::PB15<hal::gpio::Alternate<hal::gpio::PushPull>>
+    )
+>;
+type EPaperDisplay = il3820::Il3820<
+    Spi,
+    hal::gpio::gpiob::PB12<hal::gpio::Output<hal::gpio::PushPull>>,
+    hal::gpio::gpioa::PA8<hal::gpio::Output<hal::gpio::PushPull>>,
+    hal::gpio::gpioa::PA9<hal::gpio::Output<hal::gpio::PushPull>>,
+    hal::gpio::gpioa::PA10<hal::gpio::Input<hal::gpio::Floating>>
+>;
 
 entry!(main);
 
@@ -54,7 +72,8 @@ app! {
         static BUTTON0: button::Button<Button0Pin>;
         static BUTTON1: button::Button<Button1Pin>;
         static BUTTON2: button::Button<Button2Pin>;
-        static DISPLAY: sh::hio::HStdout;
+        static DISPLAY: EPaperDisplay;
+        static SPI: Spi;
         static UI: ui::Model;
         static MSG_QUEUE: msg_queue::MsgQueue;
     },
@@ -62,7 +81,7 @@ app! {
     tasks: {
         EXTI1: {
             path: render,
-            resources: [UI, DISPLAY],
+            resources: [UI, DISPLAY, SPI],
             priority: 1,
         },
         EXTI2: {
@@ -90,24 +109,6 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     let clocks = rcc.cfgr.freeze(&mut flash.acr);
     let mut gpioa = p.device.GPIOA.split(&mut rcc.apb2);
     let mut gpiob = p.device.GPIOB.split(&mut rcc.apb2);
-
-    let pb6 = gpiob.pb6.into_alternate_open_drain(&mut gpiob.crl);
-    let pb7 = gpiob.pb7.into_alternate_open_drain(&mut gpiob.crl);
-    let i2c = hal::i2c::I2c::i2c1(
-        p.device.I2C1,
-        (pb6, pb7),
-        &mut afio.mapr,
-        hal::i2c::Mode::Fast {
-            frequency: 400_000,
-            duty_cycle: hal::i2c::DutyCycle::Ratio16to9,
-        },
-        clocks,
-        &mut rcc.apb1,
-    );
-    let i2c = hal::i2c::blocking_i2c(i2c, clocks, 100, 100, 100, 100);
-    let delay = hal::delay::Delay::new(p.core.SYST, clocks);
-    let mut bme280 = bme280::BME280::new_primary(i2c, delay);
-    bme280.init().unwrap();
 
     let c1 = gpioa.pa0.into_alternate_push_pull(&mut gpioa.crl);
     let mut pwm = p
@@ -147,6 +148,46 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     alarm.set_hour(23);
     alarm.set_min(16);
 
+    let mut delay = hal::delay::Delay::new(p.core.SYST, clocks);
+
+    let sck = gpiob.pb13.into_alternate_push_pull(&mut gpiob.crh);
+    let miso = gpiob.pb14;
+    let mosi = gpiob.pb15.into_alternate_push_pull(&mut gpiob.crh);
+    let mut spi = hal::spi::Spi::spi2(
+        p.device.SPI2,
+        (sck, miso, mosi),
+        il3820::MODE,
+        4.mhz(),
+        clocks,
+        &mut rcc.apb1,
+    );    
+    let mut il3820 = il3820::Il3820::new(
+        &mut spi,
+        gpiob.pb12.into_push_pull_output(&mut gpiob.crh),
+        gpioa.pa8.into_push_pull_output(&mut gpioa.crh),
+        gpioa.pa9.into_push_pull_output(&mut gpioa.crh),
+        gpioa.pa10.into_floating_input(&mut gpioa.crh),
+        &mut delay,
+    );
+    il3820.clear(&mut spi).unwrap();
+
+    let pb6 = gpiob.pb6.into_alternate_open_drain(&mut gpiob.crl);
+    let pb7 = gpiob.pb7.into_alternate_open_drain(&mut gpiob.crl);
+    let i2c = hal::i2c::I2c::i2c1(
+        p.device.I2C1,
+        (pb6, pb7),
+        &mut afio.mapr,
+        hal::i2c::Mode::Fast {
+            frequency: 400_000,
+            duty_cycle: hal::i2c::DutyCycle::Ratio16to9,
+        },
+        clocks,
+        &mut rcc.apb1,
+    );
+    let i2c = hal::i2c::blocking_i2c(i2c, clocks, 100, 100, 100, 100);
+    let mut bme280 = bme280::BME280::new_primary(i2c, delay);
+    bme280.init().unwrap();
+
     init::LateResources {
         RTC_DEV: rtc,
         BME280: bme280,
@@ -154,7 +195,8 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         BUTTON0: button::Button::new(button0_pin),
         BUTTON1: button::Button::new(button1_pin),
         BUTTON2: button::Button::new(button2_pin),
-        DISPLAY: sh::hio::hstdout().unwrap(),
+        DISPLAY: il3820,
+        SPI: spi,
         UI: ui::Model::init(),
         MSG_QUEUE: msg_queue::MsgQueue::new(),
         ALARM_MANAGERS: [
@@ -190,10 +232,21 @@ pub fn msgs(t: &mut rtfm::Threshold, mut r: EXTI2::Resources) {
     }
     rtfm::set_pending(hal::stm32f103xx::Interrupt::EXTI1);
 }
+
 fn render(t: &mut rtfm::Threshold, mut r: EXTI1::Resources) {
     let model = r.UI.claim(t, |model, _| model.clone());
     let s = model.view().unwrap();
-    r.DISPLAY.write_str(&s).unwrap();
+    let mut display = il3820::DisplayRibbonLeft::default();
+    for (i, s) in s.split('\n').enumerate() {
+        display.draw(
+            Font8x16::render_str(&s)
+                .with_stroke(Some(1u8.into()))
+                .translate(Coord::new(5, 5 + 20 * i as i32))
+                .into_iter(),
+        );
+    }
+    r.DISPLAY.set_display(&mut *r.SPI, &display).unwrap();
+    r.DISPLAY.update(&mut *r.SPI).unwrap();
 }
 
 fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {

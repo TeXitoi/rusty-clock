@@ -84,15 +84,14 @@ impl Model {
         use self::Screen::*;
         let mut s = String::new();
 
-        writeln!(s)?;
-        writeln!(s, "{}", self.now)?;
+        writeln!(s, "{}\n", self.now)?;
 
         match &self.screen {
             Clock => {
-                writeln!(s, "Temperature = {}°C", Centi(self.temperature as i32))?;
-                writeln!(s, "Pressure = {}hPa", Centi(self.pressure as i32))?;
+                writeln!(s, "Temperature: {} deg C", Centi(self.temperature as i32))?;
+                writeln!(s, "Pressure:    {}hPa", Centi(self.pressure as i32))?;
                 if self.humidity != 0 {
-                    writeln!(s, "humidity = {}%", self.humidity)?;
+                    writeln!(s, "Humidity:    {}%", self.humidity)?;
                 }
             }
             Menu(elt) => writeln!(s, "Menu: {}", elt)?,
