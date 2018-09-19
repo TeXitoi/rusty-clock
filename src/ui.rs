@@ -2,6 +2,12 @@ use core::fmt::{self, Write};
 use embedded_hal::blocking::i2c::WriteRead;
 use heapless::{consts::*, String, Vec};
 use rtc::datetime;
+use core::convert::TryFrom;
+use embedded_graphics::coord::Coord;
+use embedded_graphics::fonts::{Font6x8, Font8x16};
+use embedded_graphics::primitives::Rect;
+use embedded_graphics::prelude::*;
+use il3820::DisplayRibbonLeft;
 
 pub enum Msg {
     DateTime(datetime::DateTime),
@@ -80,25 +86,97 @@ impl Model {
         }
         cmds
     }
-    pub fn view(&self) -> Result<String<U128>, fmt::Error> {
+    pub fn view(&self) -> DisplayRibbonLeft {
+        let mut display = DisplayRibbonLeft::default();
+
+        self.render_header(&mut display);
+
         use self::Screen::*;
-        let mut s = String::new();
-
-        writeln!(s, "{}\n", self.now)?;
-
         match &self.screen {
-            Clock => {
-                writeln!(s, "Temperature: {} deg C", Centi(self.temperature as i32))?;
-                writeln!(s, "Pressure:    {}hPa", Centi(self.pressure as i32))?;
-                if self.humidity != 0 {
-                    writeln!(s, "Humidity:    {}%", self.humidity)?;
-                }
-            }
-            Menu(elt) => writeln!(s, "Menu: {}", elt)?,
-            SetClock(datetime) => writeln!(s, "Set clock: {}", datetime)?,
+            Clock => self.render_clock(&mut display),
+            Menu(elt) => self.render_menu(elt, &mut display),
+            SetClock(datetime) => self.render_set_clock(datetime, &mut display),
         }
 
-        Ok(s)
+        display
+    }
+    fn render_header(&self, display: &mut DisplayRibbonLeft) {
+        let mut s: String<U128> = String::new();
+        write!(
+            s,
+            "{:4}-{:02}-{:02} {}",
+            self.now.year,
+            self.now.month,
+            self.now.day,
+            self.now.day_of_week,
+        ).unwrap();
+        write!(
+            s,
+            "   {}{}C",
+            Centi(self.temperature as i32),
+            char::try_from('°' as u32 - 34).unwrap(),
+        ).unwrap();
+        write!(
+            s,
+            "   {}hPa",
+            Centi(self.pressure as i32),
+        ).unwrap();
+        if self.humidity != 0 {
+            write!(s, "   {}%", self.humidity).unwrap();
+        }
+
+        display.draw(
+            Font6x8::render_str(&s)
+                .with_stroke(Some(1u8.into()))
+                .translate(Coord::new(4, 4))
+                .into_iter(),
+        );
+    }
+    fn render_clock(&self, display: &mut DisplayRibbonLeft) {
+        let mut s: String<U128> = String::new();
+        write!(
+            s,
+            "{:2}:{:02}:{:02}",
+            self.now.hour,
+            self.now.min,
+            self.now.sec
+        ).unwrap();
+        display.draw(
+            Font8x16::render_str(&s)
+                .with_stroke(Some(1u8.into()))
+                .translate(Coord::new(12, 44))
+                .into_iter(),
+        );
+
+        match self.now.sec % 10 {
+            0 => display.draw(
+                Rect::new(Coord::new(0, 0), Coord::new(30, 3))
+                    .with_fill(Some(1u8.into()))
+                    .translate(Coord::new(100, 44))
+                    .into_iter(),
+            ),
+            _ => (),
+        }
+    }
+    fn render_menu(&self, elt: &MenuElt, display: &mut DisplayRibbonLeft) {
+        let mut s: String<U128> = String::new();
+        write!(s, "Menu: {}", elt).unwrap();
+        display.draw(
+            Font8x16::render_str(&s)
+                .with_stroke(Some(1u8.into()))
+                .translate(Coord::new(12, 44))
+                .into_iter(),
+        );
+     }
+    fn render_set_clock(&self, datetime: &EditDateTime, display: &mut DisplayRibbonLeft) {
+        let mut s: String<U128> = String::new();
+        write!(s, "Set clock: {}", datetime).unwrap();
+        display.draw(
+            Font8x16::render_str(&s)
+                .with_stroke(Some(1u8.into()))
+                .translate(Coord::new(12, 44))
+                .into_iter(),
+        );
     }
 }
 

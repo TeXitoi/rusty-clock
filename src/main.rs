@@ -1,6 +1,7 @@
 #![no_main]
 #![no_std]
 #![feature(proc_macro_gen)]
+#![feature(try_from)]
 
 extern crate cortex_m;
 #[macro_use]
@@ -16,9 +17,6 @@ extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
 extern crate embedded_graphics;
 
-use embedded_graphics::coord::Coord;
-use embedded_graphics::fonts::Font8x16;
-use embedded_graphics::prelude::*;
 use hal::prelude::*;
 use heapless::consts::*;
 use heapless::Vec;
@@ -235,16 +233,7 @@ pub fn msgs(t: &mut rtfm::Threshold, mut r: EXTI2::Resources) {
 
 fn render(t: &mut rtfm::Threshold, mut r: EXTI1::Resources) {
     let model = r.UI.claim(t, |model, _| model.clone());
-    let s = model.view().unwrap();
-    let mut display = il3820::DisplayRibbonLeft::default();
-    for (i, s) in s.split('\n').enumerate() {
-        display.draw(
-            Font8x16::render_str(&s)
-                .with_stroke(Some(1u8.into()))
-                .translate(Coord::new(5, 5 + 20 * i as i32))
-                .into_iter(),
-        );
-    }
+    let display = model.view();
     r.DISPLAY.set_display(&mut *r.SPI, &display).unwrap();
     r.DISPLAY.update(&mut *r.SPI).unwrap();
 }
