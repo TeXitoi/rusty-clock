@@ -204,7 +204,8 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
         && r.ALARM_MANAGERS
             .iter_mut()
             .map(|am| am.must_ring(&datetime) as u8)
-            .sum::<u8>() > 0
+            .sum::<u8>()
+            > 0
     {
         r.ALARM
             .claim_mut(t, |alarm, _t| alarm.play(&songs::MARIO_THEME_INTRO, 5));
