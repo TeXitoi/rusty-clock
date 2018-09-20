@@ -8,6 +8,7 @@ extern crate cortex_m;
 extern crate cortex_m_rt as rt;
 extern crate bme280;
 extern crate cortex_m_rtfm as rtfm;
+extern crate embedded_graphics;
 extern crate embedded_hal;
 extern crate heapless;
 extern crate il3820;
@@ -15,7 +16,6 @@ extern crate panic_semihosting;
 extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
-extern crate embedded_graphics;
 
 use hal::prelude::*;
 use heapless::consts::*;
@@ -46,15 +46,15 @@ type Spi = hal::spi::Spi<
     (
         hal::gpio::gpiob::PB13<hal::gpio::Alternate<hal::gpio::PushPull>>,
         hal::gpio::gpiob::PB14<hal::gpio::Input<hal::gpio::Floating>>,
-        hal::gpio::gpiob::PB15<hal::gpio::Alternate<hal::gpio::PushPull>>
-    )
+        hal::gpio::gpiob::PB15<hal::gpio::Alternate<hal::gpio::PushPull>>,
+    ),
 >;
 type EPaperDisplay = il3820::Il3820<
     Spi,
     hal::gpio::gpiob::PB12<hal::gpio::Output<hal::gpio::PushPull>>,
     hal::gpio::gpioa::PA8<hal::gpio::Output<hal::gpio::PushPull>>,
     hal::gpio::gpioa::PA9<hal::gpio::Output<hal::gpio::PushPull>>,
-    hal::gpio::gpioa::PA10<hal::gpio::Input<hal::gpio::Floating>>
+    hal::gpio::gpioa::PA10<hal::gpio::Input<hal::gpio::Floating>>,
 >;
 
 entry!(main);
@@ -158,7 +158,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         4.mhz(),
         clocks,
         &mut rcc.apb1,
-    );    
+    );
     let mut il3820 = il3820::Il3820::new(
         &mut spi,
         gpiob.pb12.into_push_pull_output(&mut gpiob.crh),

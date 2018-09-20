@@ -1,13 +1,13 @@
-use core::fmt::{self, Write};
-use embedded_hal::blocking::i2c::WriteRead;
-use heapless::{consts::*, String, Vec};
-use rtc::datetime;
 use core::convert::TryFrom;
+use core::fmt::{self, Write};
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::{Font6x8, Font8x16};
-use embedded_graphics::primitives::Rect;
 use embedded_graphics::prelude::*;
+use embedded_graphics::primitives::Rect;
+use embedded_hal::blocking::i2c::WriteRead;
+use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
+use rtc::datetime;
 
 pub enum Msg {
     DateTime(datetime::DateTime),
@@ -105,10 +105,7 @@ impl Model {
         write!(
             s,
             "{:4}-{:02}-{:02} {}",
-            self.now.year,
-            self.now.month,
-            self.now.day,
-            self.now.day_of_week,
+            self.now.year, self.now.month, self.now.day, self.now.day_of_week,
         ).unwrap();
         write!(
             s,
@@ -116,11 +113,7 @@ impl Model {
             Centi(self.temperature as i32),
             char::try_from('°' as u32 - 34).unwrap(),
         ).unwrap();
-        write!(
-            s,
-            "   {}hPa",
-            Centi(self.pressure as i32),
-        ).unwrap();
+        write!(s, "   {}hPa", Centi(self.pressure as i32),).unwrap();
         if self.humidity != 0 {
             write!(s, "   {}%", self.humidity).unwrap();
         }
@@ -137,9 +130,7 @@ impl Model {
         write!(
             s,
             "{:2}:{:02}:{:02}",
-            self.now.hour,
-            self.now.min,
-            self.now.sec
+            self.now.hour, self.now.min, self.now.sec
         ).unwrap();
         display.draw(
             Font8x16::render_str(&s)
@@ -167,7 +158,7 @@ impl Model {
                 .translate(Coord::new(12, 44))
                 .into_iter(),
         );
-     }
+    }
     fn render_set_clock(&self, datetime: &EditDateTime, display: &mut DisplayRibbonLeft) {
         let mut s: String<U128> = String::new();
         write!(s, "Set clock: {}", datetime).unwrap();
