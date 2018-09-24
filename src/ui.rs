@@ -107,47 +107,60 @@ impl Model {
             "{:4}-{:02}-{:02} {}",
             self.now.year, self.now.month, self.now.day, self.now.day_of_week,
         ).unwrap();
-        write!(
-            s,
-            "   {}{}C",
-            Centi(self.temperature as i32),
-            char::try_from('°' as u32 - 34).unwrap(),
-        ).unwrap();
-        write!(s, "   {}hPa", Centi(self.pressure as i32),).unwrap();
-        if self.humidity != 0 {
-            write!(s, "   {}%", self.humidity).unwrap();
-        }
-
         display.draw(
             Font6x8::render_str(&s)
                 .with_stroke(Some(1u8.into()))
                 .translate(Coord::new(4, 4))
                 .into_iter(),
         );
-    }
-    fn render_clock(&self, display: &mut DisplayRibbonLeft) {
-        let mut s: String<U128> = String::new();
+
+        s.clear();
         write!(
             s,
-            "{:2}:{:02}:{:02}",
-            self.now.hour, self.now.min, self.now.sec
+            "{}{}C",
+            Centi(self.temperature as i32),
+            char::try_from('°' as u32 - 34).unwrap(),
         ).unwrap();
+        write!(s, "   {}hPa", Centi(self.pressure as i32),).unwrap();
+        if self.humidity != 0 {
+            write!(s, "   {:2}%", self.humidity).unwrap();
+        }
+
         display.draw(
-            Font8x16::render_str(&s)
+            Font6x8::render_str(&s)
                 .with_stroke(Some(1u8.into()))
-                .translate(Coord::new(12, 44))
+                .translate(Coord::new(4 + 22 * 6, 4))
+                .into_iter(),
+        );
+    }
+    fn render_clock(&self, display: &mut DisplayRibbonLeft) {
+        if self.now.hour >= 10 {
+            seven_segments(self.now.hour / 10, 15, 23, display);
+        }
+        seven_segments(self.now.hour % 10, 75, 23, display);
+
+        display.draw(
+            Rect::new(Coord::new(135, 23 + 20), Coord::new(145, 23 + 30))
+                .with_fill(Some(1u8.into()))
+                .into_iter(),
+        );
+        display.draw(
+            Rect::new(Coord::new(135, 23 + 60), Coord::new(145, 23 + 70))
+                .with_fill(Some(1u8.into()))
                 .into_iter(),
         );
 
-        match self.now.sec % 10 {
-            0 => display.draw(
-                Rect::new(Coord::new(0, 0), Coord::new(30, 3))
-                    .with_fill(Some(1u8.into()))
-                    .translate(Coord::new(100, 44))
-                    .into_iter(),
-            ),
-            _ => (),
-        }
+        seven_segments(self.now.min / 10, 155, 23, display);
+        seven_segments(self.now.min % 10, 215, 23, display);
+
+        let mut s: String<U4> = String::new();
+        write!(s, ":{:02}", self.now.sec).unwrap();
+        display.draw(
+            Font6x8::render_str(&s)
+                .with_stroke(Some(1u8.into()))
+                .translate(Coord::new(273, 23))
+                .into_iter(),
+        );
     }
     fn render_menu(&self, elt: &MenuElt, display: &mut DisplayRibbonLeft) {
         let mut s: String<U128> = String::new();
@@ -285,5 +298,84 @@ impl fmt::Display for EditDateTime {
             Hour => write!(f, "hour: {}", self.datetime.hour),
             Min => write!(f, "min: {}", self.datetime.min),
         }
+    }
+}
+
+fn seven_segments(c: u8, x: i32, y: i32, display: &mut DisplayRibbonLeft) {
+    fn s(s: u8) -> u8 {
+        1 << s
+    }
+    let segments = match c {
+        0 => s(0) | s(1) | s(2) | s(4) | s(5) | s(6),
+        1 => s(2) | s(5),
+        2 => s(0) | s(2) | s(3) | s(4) | s(6),
+        3 => s(0) | s(2) | s(3) | s(5) | s(6),
+        4 => s(1) | s(2) | s(3) | s(5),
+        5 => s(0) | s(1) | s(3) | s(5) | s(6),
+        6 => s(0) | s(1) | s(3) | s(4) | s(5) | s(6),
+        7 => s(0) | s(2) | s(5),
+        8 => s(0) | s(1) | s(2) | s(3) | s(4) | s(5) | s(6),
+        9 => s(0) | s(1) | s(2) | s(3) | s(5) | s(6),
+        _ => 0,
+    };
+    let w = 50;
+    let h = 90;
+    let t = 10;
+    let h2 = (h - 3 * t) / 2 + t;
+    if segments & 1 != 0 {
+        display.draw(
+            Rect::new(Coord::new(0, 0), Coord::new(w, t))
+                .with_fill(Some(1u8.into()))
+                .translate(Coord::new(x, y))
+                .into_iter(),
+        );
+    }
+    if segments & (1 << 1) != 0 {
+        display.draw(
+            Rect::new(Coord::new(0, 0), Coord::new(t, h2 + t))
+                .with_fill(Some(1u8.into()))
+                .translate(Coord::new(x, y))
+                .into_iter(),
+        );
+    }
+    if segments & (1 << 2) != 0 {
+        display.draw(
+            Rect::new(Coord::new(w - t, 0), Coord::new(w, h2 + t))
+                .with_fill(Some(1u8.into()))
+                .translate(Coord::new(x, y))
+                .into_iter(),
+        );
+    }
+    if segments & (1 << 3) != 0 {
+        display.draw(
+            Rect::new(Coord::new(t, h2), Coord::new(w - t, h2 + t))
+                .with_fill(Some(1u8.into()))
+                .translate(Coord::new(x, y))
+                .into_iter(),
+        );
+    }
+    if segments & (1 << 4) != 0 {
+        display.draw(
+            Rect::new(Coord::new(0, h2), Coord::new(t, h))
+                .with_fill(Some(1u8.into()))
+                .translate(Coord::new(x, y))
+                .into_iter(),
+        );
+    }
+    if segments & (1 << 5) != 0 {
+        display.draw(
+            Rect::new(Coord::new(w - t, h2), Coord::new(w, h))
+                .with_fill(Some(1u8.into()))
+                .translate(Coord::new(x, y))
+                .into_iter(),
+        );
+    }
+    if segments & (1 << 6) != 0 {
+        display.draw(
+            Rect::new(Coord::new(0, h - t), Coord::new(w, h))
+                .with_fill(Some(1u8.into()))
+                .translate(Coord::new(x, y))
+                .into_iter(),
+        );
     }
 }
