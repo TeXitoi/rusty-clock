@@ -56,6 +56,7 @@ type EPaperDisplay = il3820::Il3820<
     hal::gpio::gpioa::PA9<hal::gpio::Output<hal::gpio::PushPull>>,
     hal::gpio::gpioa::PA10<hal::gpio::Input<hal::gpio::Floating>>,
 >;
+type Led = hal::gpio::gpioc::PC13<hal::gpio::Output<hal::gpio::PushPull>>;
 
 entry!(main);
 
@@ -74,12 +75,13 @@ app! {
         static SPI: Spi;
         static UI: ui::Model;
         static MSG_QUEUE: msg_queue::MsgQueue;
+        static LED: Led;
     },
 
     tasks: {
         EXTI1: {
             path: render,
-            resources: [UI, DISPLAY, SPI],
+            resources: [UI, DISPLAY, SPI, LED],
             priority: 1,
         },
         EXTI2: {
@@ -186,6 +188,9 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     let mut bme280 = bme280::BME280::new_primary(i2c, delay);
     bme280.init().unwrap();
 
+    let mut gpioc = p.device.GPIOC.split(&mut rcc.apb2);
+    let led = gpioc.pc13.into_push_pull_output(&mut gpioc.crh);
+
     init::LateResources {
         RTC_DEV: rtc,
         BME280: bme280,
@@ -197,6 +202,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         SPI: spi,
         UI: ui::Model::init(),
         MSG_QUEUE: msg_queue::MsgQueue::new(),
+        LED: led,
         ALARM_MANAGERS: [
             alarm,
             alarm_manager::AlarmManager::default(),
@@ -232,10 +238,13 @@ pub fn msgs(t: &mut rtfm::Threshold, mut r: EXTI2::Resources) {
 }
 
 fn render(t: &mut rtfm::Threshold, mut r: EXTI1::Resources) {
+    while r.DISPLAY.is_busy() {}
+    r.LED.set_low();
     let model = r.UI.claim(t, |model, _| model.clone());
     let display = model.view();
     r.DISPLAY.set_display(&mut *r.SPI, &display).unwrap();
     r.DISPLAY.update(&mut *r.SPI).unwrap();
+    r.LED.set_high();
 }
 
 fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
