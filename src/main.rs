@@ -58,8 +58,6 @@ type EPaperDisplay = il3820::Il3820<
 >;
 type Led = hal::gpio::gpioc::PC13<hal::gpio::Output<hal::gpio::PushPull>>;
 
-entry!(main);
-
 app! {
     device: hal::stm32f103xx,
 
