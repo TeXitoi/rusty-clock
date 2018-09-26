@@ -121,9 +121,9 @@ impl Model {
             Centi(self.temperature as i32),
             char::try_from('°' as u32 - 34).unwrap(),
         ).unwrap();
-        write!(s, "   {}hPa", Centi(self.pressure as i32),).unwrap();
+        write!(s, "  {}hPa", Centi(self.pressure as i32),).unwrap();
         if self.humidity != 0 {
-            write!(s, "   {:2}%", self.humidity).unwrap();
+            write!(s, "  {:2}%RH", self.humidity).unwrap();
         }
 
         display.draw(
