@@ -348,7 +348,7 @@ dependencies = [
 [[package]]
 name = "stm32f103xx-rtc"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#cf16abc2b03071c6d664cb33b3400055e1549e10"
+source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#527c894f39d48c1828a227264bbcd1f4e5e586ca"
 dependencies = [
  "stm32f103xx-hal 0.1.0 (git+https://github.com/ilya-epifanov/stm32f103xx-hal?rev=3a8d64d3605b5eac9fd15eea0ba25319fbb8375c)",
 ]
