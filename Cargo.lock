@@ -244,7 +244,7 @@ dependencies = [
 [[package]]
 name = "pwm-speaker"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/pwm-speaker#18da69a2b01809899e6e1a4c03a33ef5f71f4d3d"
+source = "git+https://github.com/TeXitoi/pwm-speaker#8ccd08ba20f2ee0ee7be9f3f2a754a233eecccfa"
 dependencies = [
  "cast 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rt 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",

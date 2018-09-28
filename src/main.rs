@@ -139,10 +139,18 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     }
     rtc.enable_second_interrupt(&mut p.core.NVIC);
 
-    let mut alarm = alarm_manager::AlarmManager::default();
+    use alarm_manager::{AlarmManager, Mode::Repeat};
+    use rtc::datetime::DayOfWeek::*;
+    let mut alarm = AlarmManager::default();
     alarm.is_enable = true;
-    alarm.set_hour(23);
-    alarm.set_min(16);
+    alarm.set_hour(7);
+    alarm.set_min(25);
+    let mut days = heapless::LinearMap::new();
+    days.insert(Monday, ()).unwrap();
+    days.insert(Tuesday, ()).unwrap();
+    days.insert(Thursday, ()).unwrap();
+    days.insert(Friday, ()).unwrap();
+    alarm.mode = Repeat(days);
 
     let mut delay = hal::delay::Delay::new(p.core.SYST, clocks);
 
@@ -250,7 +258,7 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
             > 0
     {
         r.ALARM
-            .claim_mut(t, |alarm, _t| alarm.play(&songs::MARIO_THEME_INTRO, 5));
+            .claim_mut(t, |alarm, _t| alarm.play(&songs::SO_WHAT, 10 * 60));
     }
     r.MSG_QUEUE
         .claim_mut(t, |q, _| q.push(ui::Msg::DateTime(datetime)));
