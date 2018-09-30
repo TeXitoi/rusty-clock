@@ -9,6 +9,8 @@ use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
 use rtc::datetime;
 
+mod header;
+
 pub enum Msg {
     DateTime(datetime::DateTime),
     Environment(::bme280::Measurements<<::I2C as WriteRead>::Error>),
@@ -101,21 +103,21 @@ impl Model {
         display
     }
     fn render_header(&self, display: &mut DisplayRibbonLeft) {
-        let mut print = move |s: &str, x, y| {
-            display.draw(
-                Font6x8::render_str(s)
-                    .with_stroke(Some(1u8.into()))
-                    .translate(Coord::new(x, y))
-                    .into_iter(),
-            )
-        };
+        let mut header = header::Header::new(display);
         let mut s: String<U128> = String::new();
+
         write!(
             s,
-            "{:4}-{:02}-{:02} {}",
-            self.now.year, self.now.month, self.now.day, self.now.day_of_week,
+            "{:4}-{:02}-{:02}",
+            self.now.year, self.now.month, self.now.day,
         ).unwrap();
-        print(&s, 4, 4);
+        header.top_left(&s);
+
+        s.clear();
+        write!(s, "{}", self.now.day_of_week).unwrap();
+        header.top_center(&s);
+
+        header.top_right("No alarm");
 
         s.clear();
         write!(
@@ -124,16 +126,16 @@ impl Model {
             Centi(self.temperature as i32),
             char::try_from('°' as u32 - 34).unwrap(),
         ).unwrap();
-        print(&s, 4, 127 - 10);
+        header.bottom_left(&s);
 
         s.clear();
         write!(s, "{}hPa", Centi(self.pressure as i32),).unwrap();
-        print(&s, 295 - 4 - 10 * 6, 127 - 10);
+        header.bottom_right(&s);
 
         if self.humidity != 0 {
             s.clear();
             write!(s, "{:2}%RH", self.humidity).unwrap();
-            print(&s, 296 / 2 - 5 * 3, 127 - 10);
+            header.bottom_center(&s);
         }
     }
     fn render_clock(&self, display: &mut DisplayRibbonLeft) {
