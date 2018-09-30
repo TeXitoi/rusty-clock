@@ -4,7 +4,7 @@ use embedded_graphics::prelude::*;
 use il3820::DisplayRibbonLeft;
 
 pub struct Header<'a> {
-    display: &'a mut DisplayRibbonLeft
+    display: &'a mut DisplayRibbonLeft,
 }
 impl<'a> Header<'a> {
     pub fn new(display: &'a mut DisplayRibbonLeft) -> Self {

@@ -3,13 +3,13 @@ use core::fmt::{self, Write};
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::{Font6x8, Font8x16};
 use embedded_graphics::prelude::*;
-use embedded_graphics::primitives::Rect;
 use embedded_hal::blocking::i2c::WriteRead;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
 use rtc::datetime;
 
 mod header;
+mod seven_segments;
 
 pub enum Msg {
     DateTime(datetime::DateTime),
@@ -139,43 +139,23 @@ impl Model {
         }
     }
     fn render_clock(&self, display: &mut DisplayRibbonLeft) {
-        let margin = 10;
-        let digit = 50;
-        let space = 12;
+        let mut seven = seven_segments::SevenSegments::new(display, 10, 18);
 
         if self.now.hour >= 10 {
-            seven_segments(self.now.hour / 10, margin, 18, display);
+            seven.digit(self.now.hour / 10);
+        } else {
+            seven.digit_space();
         }
-        seven_segments(self.now.hour % 10, margin + digit + space, 18, display);
+        seven.digit(self.now.hour % 10);
+        if self.now.sec % 2 == 0 {
+            seven.colon();
+        } else {
+            seven.colon_space();
+        }
+        seven.digit(self.now.min / 10);
+        seven.digit(self.now.min % 10);
 
-        display.draw(
-            Rect::new(
-                Coord::new(margin + 2 * digit + 2 * space, 18 + 20),
-                Coord::new(margin + 2 * digit + 2 * space + 9, 18 + 29),
-            ).with_fill(Some(1u8.into()))
-            .into_iter(),
-        );
-        display.draw(
-            Rect::new(
-                Coord::new(margin + 2 * digit + 2 * space, 18 + 60),
-                Coord::new(margin + 2 * digit + 2 * space + 9, 18 + 69),
-            ).with_fill(Some(1u8.into()))
-            .into_iter(),
-        );
-
-        seven_segments(
-            self.now.min / 10,
-            margin + 2 * digit + 3 * space + 10,
-            18,
-            display,
-        );
-        seven_segments(
-            self.now.min % 10,
-            margin + 3 * digit + 4 * space + 10,
-            18,
-            display,
-        );
-
+        let display = seven.into_display();
         let mut s: String<U4> = String::new();
         write!(s, ":{:02}", self.now.sec).unwrap();
         display.draw(
@@ -321,84 +301,5 @@ impl fmt::Display for EditDateTime {
             Hour => write!(f, "hour: {}", self.datetime.hour),
             Min => write!(f, "min: {}", self.datetime.min),
         }
-    }
-}
-
-fn seven_segments(c: u8, x: i32, y: i32, display: &mut DisplayRibbonLeft) {
-    fn s(s: u8) -> u8 {
-        1 << s
-    }
-    let segments = match c {
-        0 => s(0) | s(1) | s(2) | s(4) | s(5) | s(6),
-        1 => s(2) | s(5),
-        2 => s(0) | s(2) | s(3) | s(4) | s(6),
-        3 => s(0) | s(2) | s(3) | s(5) | s(6),
-        4 => s(1) | s(2) | s(3) | s(5),
-        5 => s(0) | s(1) | s(3) | s(5) | s(6),
-        6 => s(0) | s(1) | s(3) | s(4) | s(5) | s(6),
-        7 => s(0) | s(2) | s(5),
-        8 => s(0) | s(1) | s(2) | s(3) | s(4) | s(5) | s(6),
-        9 => s(0) | s(1) | s(2) | s(3) | s(5) | s(6),
-        _ => 0,
-    };
-    let w = 50;
-    let h = 90;
-    let t = 10;
-    let h2 = (h - 3 * t) / 2 + t;
-    if segments & 1 != 0 {
-        display.draw(
-            Rect::new(Coord::new(0, 0), Coord::new(w - 1, t - 1))
-                .with_fill(Some(1u8.into()))
-                .translate(Coord::new(x, y))
-                .into_iter(),
-        );
-    }
-    if segments & (1 << 1) != 0 {
-        display.draw(
-            Rect::new(Coord::new(0, 0), Coord::new(t - 1, h2 + t - 1))
-                .with_fill(Some(1u8.into()))
-                .translate(Coord::new(x, y))
-                .into_iter(),
-        );
-    }
-    if segments & (1 << 2) != 0 {
-        display.draw(
-            Rect::new(Coord::new(w - t, 0), Coord::new(w - 1, h2 + t - 1))
-                .with_fill(Some(1u8.into()))
-                .translate(Coord::new(x, y))
-                .into_iter(),
-        );
-    }
-    if segments & (1 << 3) != 0 {
-        display.draw(
-            Rect::new(Coord::new(t, h2), Coord::new(w - t - 1, h2 + t - 1))
-                .with_fill(Some(1u8.into()))
-                .translate(Coord::new(x, y))
-                .into_iter(),
-        );
-    }
-    if segments & (1 << 4) != 0 {
-        display.draw(
-            Rect::new(Coord::new(0, h2), Coord::new(t - 1, h - 1))
-                .with_fill(Some(1u8.into()))
-                .translate(Coord::new(x, y))
-                .into_iter(),
-        );
-    }
-    if segments & (1 << 5) != 0 {
-        display.draw(
-            Rect::new(Coord::new(w - t, h2), Coord::new(w - 1, h - 1))
-                .with_fill(Some(1u8.into()))
-                .translate(Coord::new(x, y))
-                .into_iter(),
-        );
-    }
-    if segments & (1 << 6) != 0 {
-        display.draw(
-            Rect::new(Coord::new(0, h - t), Coord::new(w - 1, h - 1))
-                .with_fill(Some(1u8.into()))
-                .translate(Coord::new(x, y))
-                .into_iter(),
-        );
     }
 }
