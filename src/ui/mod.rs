@@ -1,4 +1,3 @@
-use core::convert::TryFrom;
 use core::fmt::{self, Write};
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::{Font6x8, Font8x16};
@@ -124,7 +123,7 @@ impl Model {
             s,
             "{}{}C",
             Centi(self.temperature as i32),
-            char::try_from('°' as u32 - 34).unwrap(),
+            ('°' as u8 - 34) as char
         ).unwrap();
         header.bottom_left(&s);
 

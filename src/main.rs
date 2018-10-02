@@ -1,7 +1,5 @@
 #![no_main]
 #![no_std]
-#![feature(proc_macro_gen)]
-#![feature(try_from)]
 
 extern crate cortex_m;
 #[macro_use]
