@@ -19,7 +19,7 @@ impl<'a> SevenSegments<'a> {
             width: 50,
             height: 92,
             thickness: 12,
-            space: 12,
+            space: 13,
             x,
             y,
         }

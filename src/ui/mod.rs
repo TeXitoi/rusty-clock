@@ -133,7 +133,7 @@ impl Model {
         }
     }
     fn render_clock(&self, display: &mut DisplayRibbonLeft) {
-        let mut seven = seven_segments::SevenSegments::new(display, 10, 18);
+        let mut seven = seven_segments::SevenSegments::new(display, 4, 18);
 
         if self.now.hour >= 10 {
             seven.digit(self.now.hour / 10);
