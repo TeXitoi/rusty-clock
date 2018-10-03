@@ -119,12 +119,7 @@ impl Model {
         header.top_right("No alarm");
 
         s.clear();
-        write!(
-            s,
-            "{}{}C",
-            Centi(self.temperature as i32),
-            ('°' as u8 - 34) as char
-        ).unwrap();
+        write!(s, "{}°C", Centi(self.temperature as i32)).unwrap();
         header.bottom_left(&s);
 
         s.clear();

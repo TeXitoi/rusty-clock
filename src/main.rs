@@ -1,10 +1,9 @@
 #![no_main]
 #![no_std]
 
-extern crate cortex_m;
-#[macro_use]
-extern crate cortex_m_rt as rt;
 extern crate bme280;
+extern crate cortex_m;
+extern crate cortex_m_rt as rt;
 extern crate cortex_m_rtfm as rtfm;
 extern crate embedded_graphics;
 extern crate embedded_hal;
@@ -19,7 +18,7 @@ use hal::prelude::*;
 use heapless::consts::*;
 use heapless::Vec;
 use pwm_speaker::songs;
-use rt::ExceptionFrame;
+use rt::{exception, ExceptionFrame};
 use rtc::datetime::DateTime;
 use rtfm::{app, Resource, Threshold};
 

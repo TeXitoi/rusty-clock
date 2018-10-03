@@ -18,6 +18,9 @@ il3820 = { git = "https://github.com/TeXitoi/il3820" }
 embedded-hal = "0.2.1"
 embedded-graphics = "0.4"
 
+[patch.crates-io]
+embedded-graphics = { git = "https://github.com/TeXitoi/embedded-graphics", branch = "font-refactor" }
+
 [profile.dev]
 opt-level = 1
 lto = true
