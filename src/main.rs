@@ -35,9 +35,9 @@ type I2C = hal::i2c::BlockingI2c<
         hal::gpio::gpiob::PB7<hal::gpio::Alternate<hal::gpio::OpenDrain>>,
     ),
 >;
-type Button0Pin = hal::gpio::gpioa::PA7<hal::gpio::Input<hal::gpio::Floating>>;
-type Button1Pin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::Floating>>;
-type Button2Pin = hal::gpio::gpiob::PB1<hal::gpio::Input<hal::gpio::Floating>>;
+type Button0Pin = hal::gpio::gpioa::PA7<hal::gpio::Input<hal::gpio::PullUp>>;
+type Button1Pin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::PullUp>>;
+type Button2Pin = hal::gpio::gpiob::PB1<hal::gpio::Input<hal::gpio::PullUp>>;
 type Spi = hal::spi::Spi<
     hal::stm32f103xx::SPI2,
     (
@@ -111,9 +111,9 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     pwm.enable();
     let speaker = pwm_speaker::Speaker::new(pwm, clocks);
 
-    let button0_pin = gpioa.pa7.into_floating_input(&mut gpioa.crl);
-    let button1_pin = gpiob.pb0.into_floating_input(&mut gpiob.crl);
-    let button2_pin = gpiob.pb1.into_floating_input(&mut gpiob.crl);
+    let button0_pin = gpioa.pa7.into_pull_up_input(&mut gpioa.crl);
+    let button1_pin = gpiob.pb0.into_pull_up_input(&mut gpiob.crl);
+    let button2_pin = gpiob.pb1.into_pull_up_input(&mut gpiob.crl);
 
     let mut timer = hal::timer::Timer::tim3(p.device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
     timer.listen(hal::timer::Event::Update);
