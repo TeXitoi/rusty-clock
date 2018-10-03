@@ -209,23 +209,6 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "panic-itm"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "cortex-m 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "panic-semihosting"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "cortex-m 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "cortex-m-semihosting 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "panic-semihosting"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -245,11 +228,11 @@ dependencies = [
 [[package]]
 name = "pwm-speaker"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/pwm-speaker#8ccd08ba20f2ee0ee7be9f3f2a754a233eecccfa"
+source = "git+https://github.com/TeXitoi/pwm-speaker#d96b04f70cfb40c87f7416262609b977bed9107d"
 dependencies = [
  "cast 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rt 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "stm32f103xx-hal 0.1.0 (git+https://github.com/ilya-epifanov/stm32f103xx-hal?rev=3a8d64d3605b5eac9fd15eea0ba25319fbb8375c)",
+ "stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)",
 ]
 
 [[package]]
@@ -323,7 +306,7 @@ dependencies = [
  "panic-semihosting 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pwm-speaker 0.1.0 (git+https://github.com/TeXitoi/pwm-speaker)",
  "stm32f103xx 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "stm32f103xx-hal 0.1.0 (git+https://github.com/ilya-epifanov/stm32f103xx-hal?rev=3a8d64d3605b5eac9fd15eea0ba25319fbb8375c)",
+ "stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)",
  "stm32f103xx-rtc 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-rtc)",
 ]
 
@@ -341,15 +324,13 @@ dependencies = [
 [[package]]
 name = "stm32f103xx-hal"
 version = "0.1.0"
-source = "git+https://github.com/ilya-epifanov/stm32f103xx-hal?rev=3a8d64d3605b5eac9fd15eea0ba25319fbb8375c#3a8d64d3605b5eac9fd15eea0ba25319fbb8375c"
+source = "git+https://github.com/TeXitoi/stm32f103xx-hal#6ef45c7692619006308df9200a8c66464e19e5b7"
 dependencies = [
  "cast 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "cortex-m-rt 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cortex-m-rt 0.6.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-hal 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "nb 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "panic-itm 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "panic-semihosting 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "stm32f103xx 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "void 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -357,9 +338,9 @@ dependencies = [
 [[package]]
 name = "stm32f103xx-rtc"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#527c894f39d48c1828a227264bbcd1f4e5e586ca"
+source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#2393db3620f5453b12f784762b6020fb76c73ec6"
 dependencies = [
- "stm32f103xx-hal 0.1.0 (git+https://github.com/ilya-epifanov/stm32f103xx-hal?rev=3a8d64d3605b5eac9fd15eea0ba25319fbb8375c)",
+ "stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)",
 ]
 
 [[package]]
@@ -473,8 +454,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum il3820 0.1.0 (git+https://github.com/TeXitoi/il3820)" = "<none>"
 "checksum libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)" = "76e3a3ef172f1a0b9a9ff0dd1491ae5e6c948b94479a3021819ba7d860c8645d"
 "checksum nb 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "69f380b5fe9fab8c0d7a6a99cda23e2cc0463bedb2cbc3aada0813b98496ecdc"
-"checksum panic-itm 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6b571b82c62ba962d2434a8fdb66408e707536e5ff6d1aef2409606f1182bb08"
-"checksum panic-semihosting 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "52f64dcd9aebf9d40f8c40ab4400bab503c89997330b8d775c20f373bf0e13fc"
 "checksum panic-semihosting 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1017854db1621a236488ac359b89b19a56dcb1cb45127376d04f23128cea7210"
 "checksum proc-macro2 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)" = "ffe022fb8c8bd254524b0b3305906c1921fa37a84a644e29079a9e62200c3901"
 "checksum pwm-speaker 0.1.0 (git+https://github.com/TeXitoi/pwm-speaker)" = "<none>"
@@ -487,7 +466,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum rtfm-syntax 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "820448648d3adb35aadaeaccf8536eae97008ca47f36078a0791878402cae6bd"
 "checksum rustc-demangle 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "bcfe5b13211b4d78e5c2cadfebd7769197d95c639c35a50057eb4c05de811395"
 "checksum stm32f103xx 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c0984862c7c29bd701be77ae20b77ad0bbaa7978ca48877d058b18cd3ec5342e"
-"checksum stm32f103xx-hal 0.1.0 (git+https://github.com/ilya-epifanov/stm32f103xx-hal?rev=3a8d64d3605b5eac9fd15eea0ba25319fbb8375c)" = "<none>"
+"checksum stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)" = "<none>"
 "checksum stm32f103xx-rtc 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-rtc)" = "<none>"
 "checksum syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)" = "261ae9ecaa397c42b960649561949d69311f08eeaea86a65696e6e46517cf741"
 "checksum syn 0.15.7 (registry+https://github.com/rust-lang/crates.io-index)" = "455a6ec9b368f8c479b0ae5494d13b22dc00990d2f00d68c9dc6a2dc4f17f210"
