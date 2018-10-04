@@ -1,6 +1,7 @@
 use bitflags::bitflags;
 use rtc::datetime::{DateTime, DayOfWeek};
 
+#[derive(Debug, Clone)]
 pub struct AlarmManager {
     pub alarms: [Alarm; 5],
 }
@@ -25,8 +26,30 @@ impl AlarmManager {
             .sum::<u8>()
             > 0
     }
+    pub fn next_ring(&self, dt: &DateTime) -> Option<(DayOfWeek, u8, u8)> {
+        let mut min = None;
+        for cur in self.alarms.iter().filter_map(|a| a.next_ring(dt)) {
+            match min {
+                None => min = Some(cur),
+                Some(min_val) => {
+                    let cmp_value = |(dow, h, m)| {
+                        let mut days = (dow as u8 + 7 - dt.day_of_week as u8) % 7;
+                        let now_h = time(dt.hour, dt.min);
+                        let this_h = time(h, m);
+                        if this_h <= now_h { days += 1 }
+                        days as u32 * 60 * 24 + this_h
+                    };
+                    if cmp_value(cur) < cmp_value(min_val) {
+                        min = Some(cur);
+                    }
+                }
+            }
+        }
+        min
+    }
 }
 
+#[derive(Debug, Clone)]
 pub struct Alarm {
     pub is_enable: bool,
     hour: u8,
@@ -105,4 +128,24 @@ impl Alarm {
             self.mode.contains_dow(datetime.day_of_week)
         }
     }
+    pub fn next_ring(&self, datetime: &DateTime) -> Option<(DayOfWeek, u8, u8)> {
+        if !self.is_enable || self.mode.is_empty() {
+            return None;
+        }
+        let mut day = if time(self.hour, self.min) <= time(datetime.hour, datetime.min) {
+            datetime.day_of_week.next()
+        } else {
+                datetime.day_of_week
+        };
+        loop {
+            if self.mode.contains_dow(day) {
+                return Some((day, self.hour, self.min));
+            }
+            day = day.next();
+        }
+    }
+}
+
+fn time(hour: u8, min: u8) -> u32 {
+    hour as u32 * 60 + min as u32
 }

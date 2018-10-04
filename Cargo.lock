@@ -98,7 +98,7 @@ dependencies = [
  "proc-macro2 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "syn 0.15.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "syn 0.15.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -138,7 +138,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "embedded-graphics"
 version = "0.4.0"
-source = "git+https://github.com/TeXitoi/embedded-graphics?branch=font-refactor#a26f2e765b76b859b9569c5e67c43569abeb0bde"
+source = "git+https://github.com/TeXitoi/embedded-graphics?branch=font-refactor#7c1b492c6b4e1382872392c60eea074db3d27dfc"
 
 [[package]]
 name = "embedded-hal"
@@ -344,7 +344,7 @@ dependencies = [
 [[package]]
 name = "stm32f103xx-rtc"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#2393db3620f5453b12f784762b6020fb76c73ec6"
+source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#97b8db792aaf32ddf45269b40d29e4c3e7c52661"
 dependencies = [
  "stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)",
 ]
@@ -361,7 +361,7 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "0.15.7"
+version = "0.15.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -476,7 +476,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)" = "<none>"
 "checksum stm32f103xx-rtc 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-rtc)" = "<none>"
 "checksum syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)" = "261ae9ecaa397c42b960649561949d69311f08eeaea86a65696e6e46517cf741"
-"checksum syn 0.15.7 (registry+https://github.com/rust-lang/crates.io-index)" = "455a6ec9b368f8c479b0ae5494d13b22dc00990d2f00d68c9dc6a2dc4f17f210"
+"checksum syn 0.15.8 (registry+https://github.com/rust-lang/crates.io-index)" = "356d1c5043597c40489e9af2d2498c7fefc33e99b7d75b43be336c8a59b3e45e"
 "checksum synstructure 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "85bb9b7550d063ea184027c9b8c20ac167cd36d3e06b3a40bceb9d746dc1a7b7"
 "checksum typenum 1.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "612d636f949607bdf9b123b4a6f6d966dedf3ff669f7f045890d3a4a73948169"
 "checksum unicode-xid 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "fc72304796d0818e357ead4e000d19c9c174ab23dc11093ac919054d20a6a7fc"

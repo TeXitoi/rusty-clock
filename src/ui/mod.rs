@@ -6,6 +6,7 @@ use embedded_hal::blocking::i2c::WriteRead;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
 use rtc::datetime;
+use alarm::AlarmManager;
 
 mod header;
 mod seven_segments;
@@ -16,6 +17,7 @@ pub enum Msg {
     ButtonMinus,
     ButtonOk,
     ButtonPlus,
+    AlarmManager(AlarmManager),
 }
 
 pub enum Cmd {
@@ -31,6 +33,7 @@ pub struct Model {
     temperature: i16,
     /// unit: %
     humidity: u8,
+    alarm_manager: AlarmManager,
     screen: Screen,
 }
 
@@ -41,6 +44,7 @@ impl Model {
             pressure: 0,
             temperature: 0,
             humidity: 0,
+            alarm_manager: AlarmManager::default(),
             screen: Screen::Clock,
         }
     }
@@ -55,6 +59,7 @@ impl Model {
                 self.temperature = (measurements.temperature * 100.) as i16;
                 self.humidity = measurements.humidity as u8;
             }
+            Msg::AlarmManager(am) => self.alarm_manager = am,
             Msg::ButtonOk => {
                 self.screen = match ::core::mem::replace(&mut self.screen, Clock) {
                     Clock => Menu(MenuElt::Clock),
@@ -107,16 +112,19 @@ impl Model {
 
         write!(
             s,
-            "{:4}-{:02}-{:02}",
-            self.now.year, self.now.month, self.now.day,
+            "{:4}-{:02}-{:02} {}",
+            self.now.year, self.now.month, self.now.day, self.now.day_of_week,
         ).unwrap();
         header.top_left(&s);
 
-        s.clear();
-        write!(s, "{}", self.now.day_of_week).unwrap();
-        header.top_center(&s);
-
-        header.top_right("No alarm");
+        match self.alarm_manager.next_ring(&self.now) {
+            None => header.top_right("No alarm"),
+            Some((dow, h, m)) => {
+                s.clear();
+                write!(s, "Alarm: {} {}:{:02}", dow, h, m);
+                header.top_right(&s);
+            }
+        }
 
         s.clear();
         write!(s, "{}°C", Centi(self.temperature as i32)).unwrap();

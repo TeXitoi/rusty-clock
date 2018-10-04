@@ -184,6 +184,9 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     let mut bme280 = bme280::BME280::new_primary(i2c, delay);
     bme280.init().unwrap();
 
+    let mut msg_queue = msg_queue::MsgQueue::new();
+    msg_queue.push(ui::Msg::AlarmManager(alarm_manager.clone()));
+
     init::LateResources {
         RTC_DEV: rtc,
         BME280: bme280,
@@ -194,7 +197,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         DISPLAY: il3820,
         SPI: spi,
         UI: ui::Model::init(),
-        MSG_QUEUE: msg_queue::MsgQueue::new(),
+        MSG_QUEUE: msg_queue,
         ALARM_MANAGER: alarm_manager,
     }
 }
