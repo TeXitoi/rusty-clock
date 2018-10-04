@@ -36,7 +36,9 @@ impl AlarmManager {
                         let mut days = (dow as u8 + 7 - dt.day_of_week as u8) % 7;
                         let now_h = time(dt.hour, dt.min);
                         let this_h = time(h, m);
-                        if this_h <= now_h { days += 1 }
+                        if this_h <= now_h {
+                            days += 1
+                        }
                         days as u32 * 60 * 24 + this_h
                     };
                     if cmp_value(cur) < cmp_value(min_val) {
@@ -135,7 +137,7 @@ impl Alarm {
         let mut day = if time(self.hour, self.min) <= time(datetime.hour, datetime.min) {
             datetime.day_of_week.next()
         } else {
-                datetime.day_of_week
+            datetime.day_of_week
         };
         loop {
             if self.mode.contains_dow(day) {

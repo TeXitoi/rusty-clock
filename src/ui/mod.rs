@@ -1,3 +1,4 @@
+use alarm::AlarmManager;
 use core::fmt::{self, Write};
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::{Font6x8, Font8x16};
@@ -6,7 +7,6 @@ use embedded_hal::blocking::i2c::WriteRead;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
 use rtc::datetime;
-use alarm::AlarmManager;
 
 mod header;
 mod seven_segments;

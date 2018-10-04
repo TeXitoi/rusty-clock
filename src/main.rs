@@ -1,6 +1,7 @@
 #![no_main]
 #![no_std]
 
+extern crate bitflags;
 extern crate bme280;
 extern crate cortex_m;
 extern crate cortex_m_rt as rt;
@@ -13,7 +14,6 @@ extern crate panic_semihosting;
 extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
-extern crate bitflags;
 
 use hal::prelude::*;
 use heapless::consts::*;
@@ -23,10 +23,10 @@ use rt::{exception, ExceptionFrame};
 use rtc::datetime::DateTime;
 use rtfm::{app, Resource, Threshold};
 
-mod sound;
 mod alarm;
 mod button;
 mod msg_queue;
+mod sound;
 mod ui;
 
 type I2C = hal::i2c::BlockingI2c<
