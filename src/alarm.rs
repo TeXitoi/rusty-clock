@@ -37,7 +37,7 @@ impl AlarmManager {
                         let now_h = time(dt.hour, dt.min);
                         let this_h = time(h, m);
                         if this_h <= now_h {
-                            days += 1
+                            days += 7
                         }
                         days as u32 * 60 * 24 + this_h
                     };

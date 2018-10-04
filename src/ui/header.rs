@@ -18,7 +18,7 @@ impl<'a> Header<'a> {
     pub fn top_left(&mut self, s: &str) {
         self.render(s, MARGIN, MARGIN);
     }
-    pub fn top_center(&mut self, s: &str) {
+    pub fn _top_center(&mut self, s: &str) {
         let len = s.chars().count() as i32;
         self.render(s, 296 / 2 - FONT_WIDTH * len / 2, MARGIN);
     }
