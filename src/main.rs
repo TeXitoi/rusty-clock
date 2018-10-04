@@ -13,6 +13,7 @@ extern crate panic_semihosting;
 extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
+extern crate bitflags;
 
 use hal::prelude::*;
 use heapless::consts::*;
@@ -136,17 +137,12 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     }
     rtc.enable_second_interrupt(&mut p.core.NVIC);
 
-    use rtc::datetime::DayOfWeek::*;
     let mut alarm_manager = alarm::AlarmManager::default();
     alarm_manager.alarms[0].is_enable = true;
     alarm_manager.alarms[0].set_hour(7);
     alarm_manager.alarms[0].set_min(25);
-    let mut days = heapless::LinearMap::new();
-    days.insert(Monday, ()).unwrap();
-    days.insert(Tuesday, ()).unwrap();
-    days.insert(Thursday, ()).unwrap();
-    days.insert(Friday, ()).unwrap();
-    alarm_manager.alarms[0].mode = alarm::Mode::Repeat(days);
+    use alarm::Mode;
+    alarm_manager.alarms[0].mode = Mode::MONDAY | Mode::TUESDAY | Mode::THURSDAY | Mode::FRIDAY;
 
     let mut delay = hal::delay::Delay::new(p.core.SYST, clocks);
 
@@ -217,6 +213,8 @@ pub fn msgs(t: &mut rtfm::Threshold, mut r: EXTI2::Resources) {
                     r.RTC_DEV.claim_mut(t, |rtc, _| {
                         let _ = rtc.set_cnt(epoch);
                     });
+                    r.MSG_QUEUE
+                        .claim_mut(t, |q, _| q.push(ui::Msg::DateTime(dt)));
                 },
             }
         }
