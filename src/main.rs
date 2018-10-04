@@ -17,13 +17,13 @@ extern crate stm32f103xx_rtc as rtc;
 use hal::prelude::*;
 use heapless::consts::*;
 use heapless::Vec;
-use pwm_speaker::songs;
+use pwm_speaker::songs::SO_WHAT;
 use rt::{exception, ExceptionFrame};
 use rtc::datetime::DateTime;
 use rtfm::{app, Resource, Threshold};
 
+mod sound;
 mod alarm;
-mod alarm_manager;
 mod button;
 mod msg_queue;
 mod ui;
@@ -60,8 +60,8 @@ app! {
     resources: {
         static RTC_DEV: rtc::Rtc;
         static BME280: bme280::BME280<I2C, hal::delay::Delay>;
-        static ALARM_MANAGERS: [alarm_manager::AlarmManager; 8];
-        static ALARM: alarm::Alarm;
+        static ALARM_MANAGER: alarm::AlarmManager;
+        static SOUND: sound::Sound;
         static BUTTON0: button::Button<Button0Pin>;
         static BUTTON1: button::Button<Button1Pin>;
         static BUTTON2: button::Button<Button2Pin>;
@@ -84,12 +84,12 @@ app! {
         },
         RTC: {
             path: handle_rtc,
-            resources: [RTC_DEV, BME280, ALARM_MANAGERS, ALARM, MSG_QUEUE],
+            resources: [RTC_DEV, BME280, ALARM_MANAGER, SOUND, MSG_QUEUE],
             priority: 3,
         },
         TIM3: {
             path: one_khz,
-            resources: [BUTTON0, BUTTON1, BUTTON2, ALARM, MSG_QUEUE],
+            resources: [BUTTON0, BUTTON1, BUTTON2, SOUND, MSG_QUEUE],
             priority: 4,
         },
     },
@@ -136,18 +136,17 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     }
     rtc.enable_second_interrupt(&mut p.core.NVIC);
 
-    use alarm_manager::{AlarmManager, Mode::Repeat};
     use rtc::datetime::DayOfWeek::*;
-    let mut alarm = AlarmManager::default();
-    alarm.is_enable = true;
-    alarm.set_hour(7);
-    alarm.set_min(25);
+    let mut alarm_manager = alarm::AlarmManager::default();
+    alarm_manager.alarms[0].is_enable = true;
+    alarm_manager.alarms[0].set_hour(7);
+    alarm_manager.alarms[0].set_min(25);
     let mut days = heapless::LinearMap::new();
     days.insert(Monday, ()).unwrap();
     days.insert(Tuesday, ()).unwrap();
     days.insert(Thursday, ()).unwrap();
     days.insert(Friday, ()).unwrap();
-    alarm.mode = Repeat(days);
+    alarm_manager.alarms[0].mode = alarm::Mode::Repeat(days);
 
     let mut delay = hal::delay::Delay::new(p.core.SYST, clocks);
 
@@ -192,7 +191,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     init::LateResources {
         RTC_DEV: rtc,
         BME280: bme280,
-        ALARM: alarm::Alarm::new(speaker),
+        SOUND: sound::Sound::new(speaker),
         BUTTON0: button::Button::new(button0_pin),
         BUTTON1: button::Button::new(button1_pin),
         BUTTON2: button::Button::new(button2_pin),
@@ -200,16 +199,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         SPI: spi,
         UI: ui::Model::init(),
         MSG_QUEUE: msg_queue::MsgQueue::new(),
-        ALARM_MANAGERS: [
-            alarm,
-            alarm_manager::AlarmManager::default(),
-            alarm_manager::AlarmManager::default(),
-            alarm_manager::AlarmManager::default(),
-            alarm_manager::AlarmManager::default(),
-            alarm_manager::AlarmManager::default(),
-            alarm_manager::AlarmManager::default(),
-            alarm_manager::AlarmManager::default(),
-        ],
+        ALARM_MANAGER: alarm_manager,
     }
 }
 
@@ -247,15 +237,9 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
     r.RTC_DEV.sync();
 
     let datetime = DateTime::new(r.RTC_DEV.get_cnt());
-    if datetime.sec == 0
-        && r.ALARM_MANAGERS
-            .iter_mut()
-            .map(|am| am.must_ring(&datetime) as u8)
-            .sum::<u8>()
-            > 0
-    {
-        r.ALARM
-            .claim_mut(t, |alarm, _t| alarm.play(&songs::SO_WHAT, 10 * 60));
+    if datetime.sec == 0 && r.ALARM_MANAGER.must_ring(&datetime) {
+        r.SOUND
+            .claim_mut(t, |alarm, _t| alarm.play(&SO_WHAT, 10 * 60));
     }
     r.MSG_QUEUE
         .claim_mut(t, |q, _| q.push(ui::Msg::DateTime(datetime)));
@@ -276,13 +260,13 @@ fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
         r.MSG_QUEUE.push(ui::Msg::ButtonMinus);
     }
     if let button::Event::Pressed = r.BUTTON1.poll() {
-        r.ALARM.stop();
+        r.SOUND.stop();
         r.MSG_QUEUE.push(ui::Msg::ButtonOk);
     }
     if let button::Event::Pressed = r.BUTTON2.poll() {
         r.MSG_QUEUE.push(ui::Msg::ButtonPlus);
     }
-    r.ALARM.poll();
+    r.SOUND.poll();
 }
 
 fn idle() -> ! {

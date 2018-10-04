@@ -1,75 +1,82 @@
-use pwm_speaker::{songs, Speaker};
+use heapless::consts::*;
+use heapless::LinearMap;
+use rtc::datetime::{DateTime, DayOfWeek};
 
-struct IterNb<I> {
-    iter: I,
-    cur: I,
-    nb: usize,
+pub struct AlarmManager {
+    pub alarms: [Alarm; 5],
 }
-impl<I: Clone> IterNb<I> {
-    fn new(nb: usize, iter: I) -> Self {
+impl Default for AlarmManager {
+    fn default() -> Self {
         Self {
-            cur: iter.clone(),
-            iter,
-            nb,
+            alarms: [
+                Alarm::default(),
+                Alarm::default(),
+                Alarm::default(),
+                Alarm::default(),
+                Alarm::default(),
+            ],
         }
     }
 }
-impl<I: Iterator + Clone> Iterator for IterNb<I> {
-    type Item = I::Item;
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match (self.cur.next(), self.nb) {
-                (Some(i), _) => return Some(i),
-                (None, 0) => return None,
-                (None, _) => {
-                    self.nb -= 1;
-                    self.cur = self.iter.clone();
-                }
-            }
-        }
+impl AlarmManager {
+    pub fn must_ring(&mut self, datetime: &DateTime) -> bool {
+        self.alarms
+            .iter_mut()
+            .map(|am| am.must_ring(datetime) as u8)
+            .sum::<u8>()
+            > 0
     }
 }
 
 pub struct Alarm {
-    speaker: Speaker,
-    playing: bool,
-    song: IterNb<songs::MsEvents>,
+    pub is_enable: bool,
+    hour: u8,
+    min: u8,
+    pub mode: Mode,
+}
+pub enum Mode {
+    OneTime,
+    Repeat(LinearMap<DayOfWeek, (), U8>),
+}
+impl Default for Alarm {
+    fn default() -> Self {
+        Self {
+            is_enable: false,
+            hour: 12,
+            min: 0,
+            mode: Mode::OneTime,
+        }
+    }
 }
 impl Alarm {
-    pub fn new(speaker: Speaker) -> Alarm {
-        Alarm {
-            speaker,
-            playing: false,
-            song: IterNb::new(0, songs::MARIO_THEME_INTRO.ms_events()),
+    pub fn hour(&self) -> u8 {
+        self.hour
+    }
+    pub fn set_hour(&mut self, h: u8) {
+        assert!(h < 24);
+        self.hour = h;
+    }
+    pub fn min(&self) -> u8 {
+        self.min
+    }
+    pub fn set_min(&mut self, m: u8) {
+        assert!(m < 60);
+        self.min = m;
+    }
+    pub fn must_ring(&mut self, datetime: &DateTime) -> bool {
+        if !self.is_enable {
+            return false;
         }
-    }
-    pub fn play(&mut self, song: &'static songs::Score, nb_sec: u32) {
-        let song_ms = song.ms_duration();
-        let nb = if song_ms == 0 {
-            0
-        } else {
-            nb_sec * 1000 / song_ms
-        };
-        self.song = IterNb::new(nb as usize, song.ms_events());
-        self.playing = true;
-        self.speaker.unmute();
-    }
-    pub fn stop(&mut self) {
-        self.playing = false;
-        self.speaker.rest();
-        self.speaker.mute();
-    }
-    pub fn poll(&mut self) {
-        if !self.playing {
-            return;
+        if datetime.sec != 0 || datetime.hour != self.hour || datetime.min != self.min {
+            return false;
         }
-
-        use pwm_speaker::songs::MsEvent::*;
-        match self.song.next() {
-            Some(BeginNote { pitch }) => self.speaker.play(pitch),
-            Some(EndNote) => self.speaker.rest(),
-            Some(Wait) => (),
-            None => self.stop(),
+        match &self.mode {
+            Mode::OneTime => {
+                self.is_enable = false;
+                true
+            }
+            Mode::Repeat(days) if days.contains_key(&datetime.day_of_week) => true,
+            _ => false,
         }
     }
 }
