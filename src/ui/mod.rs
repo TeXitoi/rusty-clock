@@ -11,6 +11,7 @@ use rtc::datetime;
 mod header;
 mod seven_segments;
 
+#[derive(Debug)]
 pub enum Msg {
     DateTime(datetime::DateTime),
     Environment(::bme280::Measurements<<::I2C as WriteRead>::Error>),
@@ -20,8 +21,10 @@ pub enum Msg {
     AlarmManager(AlarmManager),
 }
 
+#[derive(Debug)]
 pub enum Cmd {
     UpdateRtc(datetime::DateTime),
+    FullUpdate,
 }
 
 #[derive(Clone)]
@@ -53,7 +56,12 @@ impl Model {
         let mut cmds = Vec::new();
 
         match msg {
-            Msg::DateTime(datetime) => self.now = datetime,
+            Msg::DateTime(dt) => {
+                self.now = dt;
+                if self.now.hour == 0 && self.now.min == 0 && self.now.sec == 0 {
+                    cmds.push(Cmd::FullUpdate).unwrap();
+                }
+            }
             Msg::Environment(measurements) => {
                 self.pressure = measurements.pressure as u32;
                 self.temperature = (measurements.temperature * 100.) as i16;
@@ -70,13 +78,14 @@ impl Model {
                         SetClock(EditDateTime::new(dt))
                     }
                     SetClock(mut edit) => if let Some(dt) = edit.ok() {
-                        if let Err(_) = cmds.push(Cmd::UpdateRtc(dt)) {
-                            panic!("cmds too small");
-                        }
+                        cmds.push(Cmd::UpdateRtc(dt)).unwrap();
                         Clock
                     } else {
                         SetClock(edit)
                     },
+                };
+                if let Clock = self.screen {
+                    cmds.push(Cmd::FullUpdate).unwrap();
                 }
             }
             Msg::ButtonPlus => match &mut self.screen {

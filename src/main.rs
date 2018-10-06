@@ -69,18 +69,19 @@ app! {
         static DISPLAY: EPaperDisplay;
         static SPI: Spi;
         static UI: ui::Model;
+        static FULL_UPDATE: bool;
         static MSG_QUEUE: msg_queue::MsgQueue;
     },
 
     tasks: {
         EXTI1: {
             path: render,
-            resources: [UI, DISPLAY, SPI],
+            resources: [UI, DISPLAY, SPI, FULL_UPDATE],
             priority: 1,
         },
         EXTI2: {
             path: msgs,
-            resources: [UI, MSG_QUEUE, RTC_DEV],
+            resources: [UI, MSG_QUEUE, RTC_DEV, FULL_UPDATE],
             priority: 2,
         },
         RTC: {
@@ -197,6 +198,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         DISPLAY: il3820,
         SPI: spi,
         UI: ui::Model::init(),
+        FULL_UPDATE: true,
         MSG_QUEUE: msg_queue,
         ALARM_MANAGER: alarm_manager,
     }
@@ -219,6 +221,7 @@ pub fn msgs(t: &mut rtfm::Threshold, mut r: EXTI2::Resources) {
                     r.MSG_QUEUE
                         .claim_mut(t, |q, _| q.push(ui::Msg::DateTime(dt)));
                 },
+                FullUpdate => *r.FULL_UPDATE = true,
             }
         }
     }
@@ -229,8 +232,17 @@ fn render(t: &mut rtfm::Threshold, mut r: EXTI1::Resources) {
     while r.DISPLAY.is_busy() {}
     let model = r.UI.claim(t, |model, _| model.clone());
     let display = model.view();
+    let full_update = r.FULL_UPDATE.claim_mut(t, |fu, _| {
+        let full_update = *fu;
+        *fu = false;
+        full_update
+    });
+    if full_update {
+        r.DISPLAY.set_full();
+    }
     r.DISPLAY.set_display(&mut *r.SPI, &display).unwrap();
     r.DISPLAY.update(&mut *r.SPI).unwrap();
+    r.DISPLAY.set_partial();
 }
 
 fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
