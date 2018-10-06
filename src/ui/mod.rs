@@ -9,6 +9,7 @@ use il3820::DisplayRibbonLeft;
 use rtc::datetime;
 
 mod header;
+mod menu;
 mod seven_segments;
 
 #[derive(Debug)]
@@ -77,26 +78,33 @@ impl Model {
                         dt.sec = 0;
                         SetClock(EditDateTime::new(dt))
                     }
+                    Menu(MenuElt::ManageAlarms) => ManageAlarms(0),
                     SetClock(mut edit) => if let Some(dt) = edit.ok() {
                         cmds.push(Cmd::UpdateRtc(dt)).unwrap();
                         Clock
                     } else {
                         SetClock(edit)
                     },
+                    ManageAlarms(_) => Clock,
                 };
                 if let Clock = self.screen {
                     cmds.push(Cmd::FullUpdate).unwrap();
                 }
             }
             Msg::ButtonPlus => match &mut self.screen {
+                Clock => {}
                 Menu(elt) => *elt = elt.next(),
                 SetClock(edit) => edit.next(),
-                _ => {}
+                ManageAlarms(i) => *i = (*i + 1) % self.alarm_manager.alarms.len(),
             },
             Msg::ButtonMinus => match &mut self.screen {
+                Clock => {}
                 Menu(elt) => *elt = elt.prev(),
                 SetClock(edit) => edit.prev(),
-                _ => {}
+                ManageAlarms(i) => {
+                    let len = self.alarm_manager.alarms.len();
+                    *i = (*i + len - 1) % len;
+                }
             },
         }
         cmds
@@ -111,6 +119,7 @@ impl Model {
             Clock => self.render_clock(&mut display),
             Menu(elt) => self.render_menu(elt, &mut display),
             SetClock(datetime) => self.render_set_clock(datetime, &mut display),
+            ManageAlarms(i) => self.render_manage_alarms(*i, &mut display),
         }
 
         display
@@ -177,14 +186,7 @@ impl Model {
         );
     }
     fn render_menu(&self, elt: &MenuElt, display: &mut DisplayRibbonLeft) {
-        let mut s: String<U128> = String::new();
-        write!(s, "Menu: {}", elt).unwrap();
-        display.draw(
-            Font8x16::render_str(&s)
-                .with_stroke(Some(1u8.into()))
-                .translate(Coord::new(12, 44))
-                .into_iter(),
-        );
+        menu::render("Menu:", elt.items(), *elt as i32, display);
     }
     fn render_set_clock(&self, datetime: &EditDateTime, display: &mut DisplayRibbonLeft) {
         let mut s: String<U128> = String::new();
@@ -195,6 +197,19 @@ impl Model {
                 .translate(Coord::new(12, 44))
                 .into_iter(),
         );
+    }
+    fn render_manage_alarms(&self, i: usize, display: &mut DisplayRibbonLeft) {
+        let v: Vec<_, U5> = self
+            .alarm_manager
+            .alarms
+            .iter()
+            .map(|a| {
+                let mut s = String::<U40>::new();
+                write!(s, "{}", a).unwrap();
+                s
+            }).collect();
+        let v: Vec<&str, U5> = v.iter().map(|s| s.as_str()).collect();
+        menu::render("Select alarm:", &v, i as i32, display);
     }
 }
 
@@ -210,34 +225,33 @@ enum Screen {
     Clock,
     Menu(MenuElt),
     SetClock(EditDateTime),
+    ManageAlarms(usize),
 }
-#[derive(Clone)]
+#[derive(Debug, Copy, Clone)]
 enum MenuElt {
     Clock,
     SetClock,
+    ManageAlarms,
 }
 impl MenuElt {
     fn next(&self) -> MenuElt {
         use self::MenuElt::*;
         match *self {
             Clock => SetClock,
-            SetClock => Clock,
+            SetClock => ManageAlarms,
+            ManageAlarms => Clock,
         }
     }
     fn prev(&self) -> MenuElt {
         use self::MenuElt::*;
         match *self {
-            Clock => SetClock,
+            Clock => ManageAlarms,
             SetClock => Clock,
+            ManageAlarms => SetClock,
         }
     }
-}
-impl fmt::Display for MenuElt {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            MenuElt::Clock => f.write_str("clock"),
-            MenuElt::SetClock => f.write_str("set clock"),
-        }
+    fn items(&self) -> &'static [&'static str] {
+        &["Main screen", "Set clock", "Manage alarms"]
     }
 }
 #[derive(Clone)]

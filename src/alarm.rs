@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+use core::fmt;
 use rtc::datetime::{DateTime, DayOfWeek};
 
 #[derive(Debug, Clone)]
@@ -147,7 +148,38 @@ impl Alarm {
         }
     }
 }
+impl fmt::Display for Alarm {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.is_enable {
+            f.write_str("On  ")?;
+        } else {
+            f.write_str("Off ")?;
+        }
+        write!(f, "{:02}:{:02}", self.hour, self.min)?;
+        if self.mode.contains(Mode::ONE_TIME) {
+            f.write_str(" one time")?;
+        } else if self.mode.is_empty() {
+            f.write_str(" never")?;
+        } else {
+            for &(dow, s) in VEC_DAY_OF_WEEK_SHORT_NAME.iter() {
+                if self.mode.contains(dow) {
+                    f.write_str(s)?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
 
+static VEC_DAY_OF_WEEK_SHORT_NAME: [(Mode, &str); 7] = [
+    (Mode::MONDAY, " Mo"),
+    (Mode::TUESDAY, " Tu"),
+    (Mode::WEDNESDAY, " We"),
+    (Mode::THURSDAY, " Th"),
+    (Mode::FRIDAY, " Fr"),
+    (Mode::SATURDAY, " Sa"),
+    (Mode::SUNDAY, " Su"),
+];
 fn time(hour: u8, min: u8) -> u32 {
     hour as u32 * 60 + min as u32
 }

@@ -138,12 +138,16 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     }
     rtc.enable_second_interrupt(&mut p.core.NVIC);
 
+    use alarm::Mode;
     let mut alarm_manager = alarm::AlarmManager::default();
     alarm_manager.alarms[0].is_enable = true;
     alarm_manager.alarms[0].set_hour(7);
     alarm_manager.alarms[0].set_min(25);
-    use alarm::Mode;
     alarm_manager.alarms[0].mode = Mode::MONDAY | Mode::TUESDAY | Mode::THURSDAY | Mode::FRIDAY;
+    alarm_manager.alarms[1].is_enable = true;
+    alarm_manager.alarms[1].set_hour(8);
+    alarm_manager.alarms[1].set_min(15);
+    alarm_manager.alarms[1].mode = Mode::WEDNESDAY;
 
     let mut delay = hal::delay::Delay::new(p.core.SYST, clocks);
 
@@ -198,7 +202,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         DISPLAY: il3820,
         SPI: spi,
         UI: ui::Model::init(),
-        FULL_UPDATE: true,
+        FULL_UPDATE: false,
         MSG_QUEUE: msg_queue,
         ALARM_MANAGER: alarm_manager,
     }
@@ -253,6 +257,9 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
     if datetime.sec == 0 && r.ALARM_MANAGER.must_ring(&datetime) {
         r.SOUND
             .claim_mut(t, |alarm, _t| alarm.play(&SO_WHAT, 10 * 60));
+        let manager = r.ALARM_MANAGER.clone();
+        r.MSG_QUEUE
+            .claim_mut(t, |q, _| q.push(ui::Msg::AlarmManager(manager)));
     }
     r.MSG_QUEUE
         .claim_mut(t, |q, _| q.push(ui::Msg::DateTime(datetime)));
