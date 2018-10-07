@@ -11,6 +11,7 @@ use rtc::datetime;
 mod header;
 mod menu;
 mod seven_segments;
+mod state;
 
 #[derive(Debug)]
 pub enum Msg {
@@ -38,7 +39,7 @@ pub struct Model {
     /// unit: %
     humidity: u8,
     alarm_manager: AlarmManager,
-    screen: Screen,
+    screen: state::Screen,
 }
 
 impl Model {
@@ -49,11 +50,11 @@ impl Model {
             temperature: 0,
             humidity: 0,
             alarm_manager: AlarmManager::default(),
-            screen: Screen::Clock,
+            screen: state::Screen::Clock,
         }
     }
     pub fn update(&mut self, msg: Msg) -> Vec<Cmd, U4> {
-        use self::Screen::*;
+        use self::state::Screen::*;
         let mut cmds = Vec::new();
 
         match msg {
@@ -70,6 +71,7 @@ impl Model {
             }
             Msg::AlarmManager(am) => self.alarm_manager = am,
             Msg::ButtonOk => {
+                use self::state::{EditDateTime, MenuElt};
                 self.screen = match ::core::mem::replace(&mut self.screen, Clock) {
                     Clock => Menu(MenuElt::Clock),
                     Menu(MenuElt::Clock) => Clock,
@@ -114,7 +116,7 @@ impl Model {
 
         self.render_header(&mut display);
 
-        use self::Screen::*;
+        use self::state::Screen::*;
         match &self.screen {
             Clock => self.render_clock(&mut display),
             Menu(elt) => self.render_menu(elt, &mut display),
@@ -185,10 +187,10 @@ impl Model {
                 .into_iter(),
         );
     }
-    fn render_menu(&self, elt: &MenuElt, display: &mut DisplayRibbonLeft) {
+    fn render_menu(&self, elt: &state::MenuElt, display: &mut DisplayRibbonLeft) {
         menu::render("Menu:", elt.items(), *elt as i32, display);
     }
-    fn render_set_clock(&self, datetime: &EditDateTime, display: &mut DisplayRibbonLeft) {
+    fn render_set_clock(&self, datetime: &state::EditDateTime, display: &mut DisplayRibbonLeft) {
         let mut s: String<U128> = String::new();
         write!(s, "Set clock: {}", datetime).unwrap();
         display.draw(
@@ -217,114 +219,5 @@ struct Centi(i32);
 impl fmt::Display for Centi {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}.{:02}", self.0 / 100, self.0 % 100)
-    }
-}
-
-#[derive(Clone)]
-enum Screen {
-    Clock,
-    Menu(MenuElt),
-    SetClock(EditDateTime),
-    ManageAlarms(usize),
-}
-#[derive(Debug, Copy, Clone)]
-enum MenuElt {
-    Clock,
-    SetClock,
-    ManageAlarms,
-}
-impl MenuElt {
-    fn next(&self) -> MenuElt {
-        use self::MenuElt::*;
-        match *self {
-            Clock => SetClock,
-            SetClock => ManageAlarms,
-            ManageAlarms => Clock,
-        }
-    }
-    fn prev(&self) -> MenuElt {
-        use self::MenuElt::*;
-        match *self {
-            Clock => ManageAlarms,
-            SetClock => Clock,
-            ManageAlarms => SetClock,
-        }
-    }
-    fn items(&self) -> &'static [&'static str] {
-        &["Main screen", "Set clock", "Manage alarms"]
-    }
-}
-#[derive(Clone)]
-struct EditDateTime {
-    datetime: datetime::DateTime,
-    state: EditDateTimeState,
-}
-#[derive(Clone)]
-enum EditDateTimeState {
-    Year,
-    Month,
-    Day,
-    Hour,
-    Min,
-}
-impl EditDateTime {
-    fn new(datetime: datetime::DateTime) -> Self {
-        Self {
-            datetime,
-            state: EditDateTimeState::Year,
-        }
-    }
-    fn next(&mut self) {
-        use self::EditDateTimeState::*;
-        match self.state {
-            Year => {
-                self.datetime.year += 1;
-                if self.datetime.year > 2105 {
-                    self.datetime.year = 1970;
-                }
-            }
-            Month => self.datetime.month = self.datetime.month % 12 + 1,
-            Day => self.datetime.day = self.datetime.day % 31 + 1,
-            Hour => self.datetime.hour = (self.datetime.hour + 1) % 24,
-            Min => self.datetime.min = (self.datetime.min + 1) % 60,
-        }
-    }
-    fn prev(&mut self) {
-        use self::EditDateTimeState::*;
-        match self.state {
-            Year => {
-                self.datetime.year -= 1;
-                if self.datetime.year < 1970 {
-                    self.datetime.year = 2105;
-                }
-            }
-            Month => self.datetime.month = (self.datetime.month + 12 - 2) % 12 + 1,
-            Day => self.datetime.day = (self.datetime.day + 31 - 2) % 31 + 1,
-            Hour => self.datetime.hour = (self.datetime.hour + 24 - 1) % 24,
-            Min => self.datetime.min = (self.datetime.min + 60 - 1) % 60,
-        }
-    }
-    fn ok(&mut self) -> Option<datetime::DateTime> {
-        use self::EditDateTimeState::*;
-        match self.state {
-            Year => self.state = Month,
-            Month => self.state = Day,
-            Day => self.state = Hour,
-            Hour => self.state = Min,
-            Min => return Some(self.datetime.clone()),
-        }
-        None
-    }
-}
-impl fmt::Display for EditDateTime {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::EditDateTimeState::*;
-        match self.state {
-            Year => write!(f, "year: {}", self.datetime.year),
-            Month => write!(f, "month: {}", self.datetime.month),
-            Day => write!(f, "day: {}", self.datetime.day),
-            Hour => write!(f, "hour: {}", self.datetime.hour),
-            Min => write!(f, "min: {}", self.datetime.min),
-        }
     }
 }
