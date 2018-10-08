@@ -148,6 +148,9 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     alarm_manager.alarms[1].set_hour(8);
     alarm_manager.alarms[1].set_min(15);
     alarm_manager.alarms[1].mode = Mode::WEDNESDAY;
+    alarm_manager.alarms[4].set_hour(13);
+    alarm_manager.alarms[4].set_min(37);
+    alarm_manager.alarms[4].mode = Mode::all() - Mode::ONE_TIME;
 
     let mut delay = hal::delay::Delay::new(p.core.SYST, clocks);
 

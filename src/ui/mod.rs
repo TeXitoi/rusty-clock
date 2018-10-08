@@ -87,7 +87,8 @@ impl Model {
                     } else {
                         SetClock(edit)
                     },
-                    ManageAlarms(_) => Clock,
+                    ManageAlarms(i) => ManageAlarm(state::ManageAlarm::new(&self.alarm_manager, i)),
+                    ManageAlarm(state) => state.ok(),
                 };
                 if let Clock = self.screen {
                     cmds.push(Cmd::FullUpdate).unwrap();
@@ -95,18 +96,20 @@ impl Model {
             }
             Msg::ButtonPlus => match &mut self.screen {
                 Clock => {}
-                Menu(elt) => *elt = elt.next(),
-                SetClock(edit) => edit.next(),
+                Menu(state) => state.next(),
+                SetClock(state) => state.next(),
                 ManageAlarms(i) => *i = (*i + 1) % self.alarm_manager.alarms.len(),
+                ManageAlarm(state) => state.next(),
             },
             Msg::ButtonMinus => match &mut self.screen {
                 Clock => {}
-                Menu(elt) => *elt = elt.prev(),
-                SetClock(edit) => edit.prev(),
+                Menu(state) => state.prev(),
+                SetClock(state) => state.prev(),
                 ManageAlarms(i) => {
                     let len = self.alarm_manager.alarms.len();
                     *i = (*i + len - 1) % len;
                 }
+                ManageAlarm(state) => state.prev(),
             },
         }
         cmds
@@ -122,6 +125,7 @@ impl Model {
             Menu(elt) => self.render_menu(elt, &mut display),
             SetClock(datetime) => self.render_set_clock(datetime, &mut display),
             ManageAlarms(i) => self.render_manage_alarms(*i, &mut display),
+            ManageAlarm(state) => state.render(&mut display),
         }
 
         display
