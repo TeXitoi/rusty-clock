@@ -146,10 +146,10 @@ impl ManageAlarm {
         self.state.ok(&self)
     }
     pub fn next(&mut self) {
-        self.state = self.state.next();
+        self.state = self.state.next(&mut self.alarm);
     }
     pub fn prev(&mut self) {
-        self.state = self.state.prev();
+        self.state = self.state.prev(&mut self.alarm);
     }
     pub fn render(&self, display: &mut DisplayRibbonLeft) {
         self.state.render(&self.alarm, display);
@@ -158,7 +158,8 @@ impl ManageAlarm {
 #[derive(Debug, Clone, Copy)]
 enum ManageAlarmState {
     Main(ManageAlarmMainState),
-    //SetTime(ManageAlarmSetTimeState),
+    SetHour,
+    SetMin,
     ManageRepeat(ManageAlarmManageRepeatState),
 }
 impl ManageAlarmState {
@@ -166,20 +167,50 @@ impl ManageAlarmState {
         use self::ManageAlarmState::*;
         match self {
             Main(state) => state.ok(manage),
+            SetHour => {
+                let mut manage = manage.clone();
+                manage.state = SetMin;
+                Screen::ManageAlarm(manage)
+            },
+            SetMin => {
+                let mut manage = manage.clone();
+                manage.state = Main(ManageAlarmMainState::SetTime);
+                Screen::ManageAlarm(manage)
+            },
             ManageRepeat(state) => state.ok(manage),
         }
     }
-    pub fn next(&self) -> Self {
+    pub fn next(&self, alarm: &mut Alarm) -> Self {
         use self::ManageAlarmState::*;
         match self {
             Main(state) => Main(state.next()),
+            SetHour => {
+                let hour = alarm.hour();
+                alarm.set_hour((hour + 1) % 24);
+                SetHour
+            }
+            SetMin => {
+                let min = alarm.min();
+                alarm.set_min((min + 5) % 60);
+                SetMin
+            }
             ManageRepeat(state) => ManageRepeat(state.next()),
         }
     }
-    pub fn prev(&self) -> Self {
+    pub fn prev(&self, alarm: &mut Alarm) -> Self {
         use self::ManageAlarmState::*;
         match self {
             Main(state) => Main(state.prev()),
+            SetHour => {
+                let hour = alarm.hour();
+                alarm.set_hour((hour + 24 - 1) % 24);
+                SetHour
+            }
+            SetMin => {
+                let min = alarm.min();
+                alarm.set_min((min + 60 - 5) % 60);
+                SetMin
+            }
             ManageRepeat(state) => ManageRepeat(state.prev()),
         }
     }
@@ -203,6 +234,8 @@ impl ManageAlarmState {
                 ];
                 menu::render(&title, &menu, *state as i32, display);
             }
+            SetHour => menu::render(&title, &["Set hour"], 0, display),
+            SetMin => menu::render(&title, &["Set minute"], 0, display),
             ManageRepeat(state) => {
                 let menu = [
                     manage_str!(alarm, Monday, MONDAY),
@@ -236,7 +269,11 @@ impl ManageAlarmMainState {
                 manage.alarm.is_enable = !manage.alarm.is_enable;
                 Screen::ManageAlarm(manage)
             }
-            SetTime => Screen::ManageAlarm(manage.clone()),
+            SetTime => {
+                let mut manage = manage.clone();
+                manage.state = ManageAlarmState::SetHour;
+                Screen::ManageAlarm(manage)
+            }
             ToggleOneTime => {
                 let mut manage = manage.clone();
                 manage.alarm.mode.toggle(Mode::ONE_TIME);
