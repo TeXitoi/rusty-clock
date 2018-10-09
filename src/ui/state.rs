@@ -6,6 +6,16 @@ use heapless::String;
 use il3820::DisplayRibbonLeft;
 use rtc::datetime;
 
+macro_rules! manage_str {
+    ( $alarm: ident, $d:ident, $m:ident ) => {
+        if $alarm.mode.contains(Mode::$m) {
+            concat!("Remove ", stringify!($d))
+        } else {
+            concat!("Add ", stringify!($d))
+        }
+    };
+}
+
 #[derive(Debug, Clone)]
 pub enum Screen {
     Clock,
@@ -129,25 +139,11 @@ impl ManageAlarm {
         Self {
             id,
             alarm: manager.alarms[id].clone(),
-            state: ManageAlarmState::ToggleEnable,
+            state: ManageAlarmState::Main(ManageAlarmMainState::ToggleEnable),
         }
     }
     pub fn ok(&self) -> Screen {
-        use self::ManageAlarmState::*;
-        match self.state {
-            ToggleEnable => {
-                let mut manage = self.clone();
-                manage.alarm.is_enable = !manage.alarm.is_enable;
-                Screen::ManageAlarm(manage)
-            }
-            SetTime => Screen::ManageAlarm(self.clone()),
-            ToggleOneTime => {
-                let mut manage = self.clone();
-                manage.alarm.mode.toggle(Mode::ONE_TIME);
-                Screen::ManageAlarm(manage)
-            }
-            Quit => Screen::Clock,
-        }
+        self.state.ok(&self)
     }
     pub fn next(&mut self) {
         self.state = self.state.next();
@@ -156,53 +152,185 @@ impl ManageAlarm {
         self.state = self.state.prev();
     }
     pub fn render(&self, display: &mut DisplayRibbonLeft) {
-        let mut title = String::<U40>::new();
-        write!(title, "Edit: {}", self.alarm).unwrap();
-        menu::render(
-            &title,
-            &[
-                if self.alarm.is_enable {
-                    "Disable"
-                } else {
-                    "Enable"
-                },
-                "Set Time",
-                if self.alarm.mode.contains(Mode::ONE_TIME) {
-                    "Repeat"
-                } else {
-                    "One time"
-                },
-                "Save and quit",
-            ],
-            self.state as i32,
-            display,
-        );
+        self.state.render(&self.alarm, display);
     }
 }
 #[derive(Debug, Clone, Copy)]
 enum ManageAlarmState {
-    ToggleEnable,
-    SetTime,
-    ToggleOneTime,
-    Quit,
+    Main(ManageAlarmMainState),
+    //SetTime(ManageAlarmSetTimeState),
+    ManageRepeat(ManageAlarmManageRepeatState),
 }
 impl ManageAlarmState {
+    pub fn ok(&self, manage: &ManageAlarm) -> Screen {
+        use self::ManageAlarmState::*;
+        match self {
+            Main(state) => state.ok(manage),
+            ManageRepeat(state) => state.ok(manage),
+        }
+    }
     pub fn next(&self) -> Self {
         use self::ManageAlarmState::*;
-        match *self {
-            ToggleEnable => SetTime,
-            SetTime => ToggleOneTime,
-            ToggleOneTime => Quit,
-            Quit => ToggleEnable,
+        match self {
+            Main(state) => Main(state.next()),
+            ManageRepeat(state) => ManageRepeat(state.next()),
         }
     }
     pub fn prev(&self) -> Self {
         use self::ManageAlarmState::*;
+        match self {
+            Main(state) => Main(state.prev()),
+            ManageRepeat(state) => ManageRepeat(state.prev()),
+        }
+    }
+    pub fn render(&self, alarm: &Alarm, display: &mut DisplayRibbonLeft) {
+        use self::ManageAlarmState::*;
+
+        let mut title = String::<U40>::new();
+        write!(title, "Edit: {}", alarm).unwrap();
+        match self {
+            Main(state) => {
+                let menu = [
+                    if alarm.is_enable { "Disable" } else { "Enable" },
+                    "Set Time",
+                    if alarm.mode.contains(Mode::ONE_TIME) {
+                        "Repeat"
+                    } else {
+                        "One time"
+                    },
+                    "Manage repeat",
+                    "Save and quit",
+                ];
+                menu::render(&title, &menu, *state as i32, display);
+            }
+            ManageRepeat(state) => {
+                let menu = [
+                    manage_str!(alarm, Monday, MONDAY),
+                    manage_str!(alarm, Tuesday, TUESDAY),
+                    manage_str!(alarm, Wednesday, WEDNESDAY),
+                    manage_str!(alarm, Thursday, THURSDAY),
+                    manage_str!(alarm, Friday, FRIDAY),
+                    manage_str!(alarm, Saturday, SATURDAY),
+                    manage_str!(alarm, Sunday, SUNDAY),
+                    "Back",
+                ];
+                menu::render(&title, &menu, *state as i32, display);
+            }
+        }
+    }
+}
+#[derive(Debug, Clone, Copy)]
+enum ManageAlarmMainState {
+    ToggleEnable,
+    SetTime,
+    ToggleOneTime,
+    ManageRepeat,
+    Quit,
+}
+impl ManageAlarmMainState {
+    pub fn ok(&self, manage: &ManageAlarm) -> Screen {
+        use self::ManageAlarmMainState::*;
+        match self {
+            ToggleEnable => {
+                let mut manage = manage.clone();
+                manage.alarm.is_enable = !manage.alarm.is_enable;
+                Screen::ManageAlarm(manage)
+            }
+            SetTime => Screen::ManageAlarm(manage.clone()),
+            ToggleOneTime => {
+                let mut manage = manage.clone();
+                manage.alarm.mode.toggle(Mode::ONE_TIME);
+                Screen::ManageAlarm(manage)
+            }
+            ManageRepeat => {
+                let mut manage = manage.clone();
+                use self::ManageAlarmManageRepeatState::Monday;
+                manage.state = ManageAlarmState::ManageRepeat(Monday);
+                Screen::ManageAlarm(manage)
+            }
+            Quit => Screen::Clock,
+        }
+    }
+    pub fn next(&self) -> Self {
+        use self::ManageAlarmMainState::*;
+        match *self {
+            ToggleEnable => SetTime,
+            SetTime => ToggleOneTime,
+            ToggleOneTime => ManageRepeat,
+            ManageRepeat => Quit,
+            Quit => ToggleEnable,
+        }
+    }
+    pub fn prev(&self) -> Self {
+        use self::ManageAlarmMainState::*;
         match *self {
             ToggleEnable => Quit,
             SetTime => ToggleEnable,
             ToggleOneTime => SetTime,
-            Quit => ToggleOneTime,
+            ManageRepeat => ToggleOneTime,
+            Quit => ManageRepeat,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum ManageAlarmManageRepeatState {
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+    Sunday,
+    Quit,
+}
+impl ManageAlarmManageRepeatState {
+    pub fn ok(&self, manage: &ManageAlarm) -> Screen {
+        use self::ManageAlarmManageRepeatState::*;
+        let toggle = |d| {
+            let mut manage = manage.clone();
+            manage.alarm.mode.toggle(d);
+            Screen::ManageAlarm(manage)
+        };
+        match self {
+            Monday => toggle(Mode::MONDAY),
+            Tuesday => toggle(Mode::TUESDAY),
+            Wednesday => toggle(Mode::WEDNESDAY),
+            Thursday => toggle(Mode::THURSDAY),
+            Friday => toggle(Mode::FRIDAY),
+            Saturday => toggle(Mode::SATURDAY),
+            Sunday => toggle(Mode::SUNDAY),
+            Quit => {
+                let mut manage = manage.clone();
+                manage.state = ManageAlarmState::Main(ManageAlarmMainState::ManageRepeat);
+                Screen::ManageAlarm(manage)
+            }
+        }
+    }
+    pub fn next(&self) -> Self {
+        use self::ManageAlarmManageRepeatState::*;
+        match *self {
+            Monday => Tuesday,
+            Tuesday => Wednesday,
+            Wednesday => Thursday,
+            Thursday => Friday,
+            Friday => Saturday,
+            Saturday => Sunday,
+            Sunday => Quit,
+            Quit => Monday,
+        }
+    }
+    pub fn prev(&self) -> Self {
+        use self::ManageAlarmManageRepeatState::*;
+        match *self {
+            Monday => Quit,
+            Tuesday => Monday,
+            Wednesday => Tuesday,
+            Thursday => Wednesday,
+            Friday => Thursday,
+            Saturday => Friday,
+            Sunday => Saturday,
+            Quit => Sunday,
         }
     }
 }
