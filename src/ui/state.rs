@@ -1,8 +1,7 @@
-use super::menu;
+use super::{menu, Cmd};
 use alarm::{Alarm, AlarmManager, Mode};
 use core::fmt::{self, Write};
-use heapless::consts::U40;
-use heapless::String;
+use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
 use rtc::datetime;
 
@@ -142,8 +141,8 @@ impl ManageAlarm {
             state: ManageAlarmState::Main(ManageAlarmMainState::ToggleEnable),
         }
     }
-    pub fn ok(&self) -> Screen {
-        self.state.ok(&self)
+    pub fn ok(&self, cmds: &mut Vec<Cmd, U4>) -> Screen {
+        self.state.ok(&self, cmds)
     }
     pub fn next(&mut self) {
         self.state = self.state.next(&mut self.alarm);
@@ -163,20 +162,20 @@ enum ManageAlarmState {
     ManageRepeat(ManageAlarmManageRepeatState),
 }
 impl ManageAlarmState {
-    pub fn ok(&self, manage: &ManageAlarm) -> Screen {
+    pub fn ok(&self, manage: &ManageAlarm, cmds: &mut Vec<Cmd, U4>) -> Screen {
         use self::ManageAlarmState::*;
         match self {
-            Main(state) => state.ok(manage),
+            Main(state) => state.ok(manage, cmds),
             SetHour => {
                 let mut manage = manage.clone();
                 manage.state = SetMin;
                 Screen::ManageAlarm(manage)
-            },
+            }
             SetMin => {
                 let mut manage = manage.clone();
                 manage.state = Main(ManageAlarmMainState::SetTime);
                 Screen::ManageAlarm(manage)
-            },
+            }
             ManageRepeat(state) => state.ok(manage),
         }
     }
@@ -261,7 +260,7 @@ enum ManageAlarmMainState {
     Quit,
 }
 impl ManageAlarmMainState {
-    pub fn ok(&self, manage: &ManageAlarm) -> Screen {
+    pub fn ok(&self, manage: &ManageAlarm, cmds: &mut Vec<Cmd, U4>) -> Screen {
         use self::ManageAlarmMainState::*;
         match self {
             ToggleEnable => {
@@ -285,7 +284,11 @@ impl ManageAlarmMainState {
                 manage.state = ManageAlarmState::ManageRepeat(Monday);
                 Screen::ManageAlarm(manage)
             }
-            Quit => Screen::Clock,
+            Quit => {
+                cmds.push(Cmd::UpdateAlarm(manage.alarm.clone(), manage.id))
+                    .unwrap();
+                Screen::Clock
+            }
         }
     }
     pub fn next(&self) -> Self {

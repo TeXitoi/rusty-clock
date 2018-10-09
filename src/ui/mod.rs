@@ -1,4 +1,4 @@
-use alarm::AlarmManager;
+use alarm::{Alarm, AlarmManager};
 use core::fmt::{self, Write};
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::{Font6x8, Font8x16};
@@ -26,6 +26,7 @@ pub enum Msg {
 #[derive(Debug)]
 pub enum Cmd {
     UpdateRtc(datetime::DateTime),
+    UpdateAlarm(Alarm, usize),
     FullUpdate,
 }
 
@@ -88,7 +89,7 @@ impl Model {
                         SetClock(edit)
                     },
                     ManageAlarms(i) => ManageAlarm(state::ManageAlarm::new(&self.alarm_manager, i)),
-                    ManageAlarm(state) => state.ok(),
+                    ManageAlarm(state) => state.ok(&mut cmds),
                 };
                 if let Clock = self.screen {
                     cmds.push(Cmd::FullUpdate).unwrap();

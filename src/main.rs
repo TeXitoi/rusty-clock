@@ -81,7 +81,7 @@ app! {
         },
         EXTI2: {
             path: msgs,
-            resources: [UI, MSG_QUEUE, RTC_DEV, FULL_UPDATE],
+            resources: [UI, MSG_QUEUE, RTC_DEV, FULL_UPDATE, ALARM_MANAGER],
             priority: 2,
         },
         RTC: {
@@ -228,6 +228,14 @@ pub fn msgs(t: &mut rtfm::Threshold, mut r: EXTI2::Resources) {
                     r.MSG_QUEUE
                         .claim_mut(t, |q, _| q.push(ui::Msg::DateTime(dt)));
                 },
+                UpdateAlarm(alarm, i) => {
+                    let manager = r.ALARM_MANAGER.claim_mut(t, |m, _| {
+                        m.alarms[i] = alarm;
+                        m.clone()
+                    });
+                    r.MSG_QUEUE
+                        .claim_mut(t, |q, _| q.push(ui::Msg::AlarmManager(manager)));
+                }
                 FullUpdate => *r.FULL_UPDATE = true,
             }
         }
