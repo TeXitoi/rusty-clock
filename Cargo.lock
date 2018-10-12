@@ -233,11 +233,11 @@ dependencies = [
 [[package]]
 name = "pwm-speaker"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/pwm-speaker#d96b04f70cfb40c87f7416262609b977bed9107d"
+source = "git+https://github.com/TeXitoi/pwm-speaker#acb4428fef843fad42ef7aa6f23c6f9c6051ad98"
 dependencies = [
  "cast 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rt 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)",
+ "stm32f103xx-hal 0.1.0 (git+https://github.com/japaric/stm32f103xx-hal)",
 ]
 
 [[package]]
@@ -312,7 +312,7 @@ dependencies = [
  "panic-semihosting 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pwm-speaker 0.1.0 (git+https://github.com/TeXitoi/pwm-speaker)",
  "stm32f103xx 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)",
+ "stm32f103xx-hal 0.1.0 (git+https://github.com/japaric/stm32f103xx-hal)",
  "stm32f103xx-rtc 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-rtc)",
 ]
 
@@ -330,7 +330,7 @@ dependencies = [
 [[package]]
 name = "stm32f103xx-hal"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/stm32f103xx-hal#6ef45c7692619006308df9200a8c66464e19e5b7"
+source = "git+https://github.com/japaric/stm32f103xx-hal#5118b93ec9439a6d71737cb7ad0e00335d7756fc"
 dependencies = [
  "cast 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -344,9 +344,9 @@ dependencies = [
 [[package]]
 name = "stm32f103xx-rtc"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#97b8db792aaf32ddf45269b40d29e4c3e7c52661"
+source = "git+https://github.com/TeXitoi/stm32f103xx-rtc#c9a89bd54638bb02142efaac672052a92cc775b2"
 dependencies = [
- "stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)",
+ "stm32f103xx-hal 0.1.0 (git+https://github.com/japaric/stm32f103xx-hal)",
 ]
 
 [[package]]
@@ -473,7 +473,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum rtfm-syntax 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "820448648d3adb35aadaeaccf8536eae97008ca47f36078a0791878402cae6bd"
 "checksum rustc-demangle 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "bcfe5b13211b4d78e5c2cadfebd7769197d95c639c35a50057eb4c05de811395"
 "checksum stm32f103xx 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c0984862c7c29bd701be77ae20b77ad0bbaa7978ca48877d058b18cd3ec5342e"
-"checksum stm32f103xx-hal 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-hal)" = "<none>"
+"checksum stm32f103xx-hal 0.1.0 (git+https://github.com/japaric/stm32f103xx-hal)" = "<none>"
 "checksum stm32f103xx-rtc 0.1.0 (git+https://github.com/TeXitoi/stm32f103xx-rtc)" = "<none>"
 "checksum syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)" = "261ae9ecaa397c42b960649561949d69311f08eeaea86a65696e6e46517cf741"
 "checksum syn 0.15.9 (registry+https://github.com/rust-lang/crates.io-index)" = "b10ee269228fb723234fce98e9aac0eaed2bd5f1ad2f6930e8d5b93f04445a1a"
