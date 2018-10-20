@@ -183,10 +183,10 @@ impl Model {
     fn render_menu(&self, elt: &state::MenuElt, display: &mut DisplayRibbonLeft) {
         menu::render("Menu:", elt.items(), *elt as i32, display);
     }
-    fn render_set_clock(&self, datetime: &state::EditDateTime, display: &mut DisplayRibbonLeft) {
+    fn render_set_clock(&self, dt: &state::EditDateTime, display: &mut DisplayRibbonLeft) {
         let mut title: String<U128> = String::new();
-        write!(title, "Edit clock: {}", datetime.datetime).unwrap();
-        menu::render(&title, &[datetime.as_edit_str()], 0, display);
+        write!(title, "Edit: {:04}-{:02}-{:02} {:02}:{:02}", dt.datetime.year, dt.datetime.month, dt.datetime.day, dt.datetime.hour, dt.datetime.min).unwrap();
+        menu::render(&title, &[dt.as_edit_str()], 0, display);
     }
     fn render_manage_alarms(&self, i: usize, display: &mut DisplayRibbonLeft) {
         let v: Vec<_, U5> = self
