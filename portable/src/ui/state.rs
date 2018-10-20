@@ -1,9 +1,9 @@
 use super::{menu, Cmd};
 use alarm::{Alarm, AlarmManager, Mode};
 use core::fmt::{self, Write};
+use datetime;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
-use portable::datetime;
 
 macro_rules! manage_str {
     ( $alarm: ident, $d:ident, $m:ident ) => {

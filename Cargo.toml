@@ -18,7 +18,6 @@ heapless = "0.3.6"
 pwm-speaker = { git = "https://github.com/TeXitoi/pwm-speaker" }
 il3820 = { git = "https://github.com/TeXitoi/il3820" }
 embedded-hal = "0.2.1"
-embedded-graphics = "0.4.1"
 portable = { path = "portable" }
 
 [profile.dev]

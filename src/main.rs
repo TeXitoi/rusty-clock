@@ -1,17 +1,16 @@
 #![no_main]
 #![no_std]
 
-extern crate portable;
 extern crate bme280;
 extern crate cortex_m;
 extern crate cortex_m_rt as rt;
 extern crate cortex_m_rtfm as rtfm;
-extern crate embedded_graphics;
 extern crate embedded_hal;
 extern crate heapless;
 extern crate il3820;
 #[cfg(not(test))]
 extern crate panic_semihosting;
+extern crate portable;
 extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
@@ -19,16 +18,14 @@ extern crate stm32f103xx_rtc as rtc;
 use hal::prelude::*;
 use heapless::consts::*;
 use heapless::Vec;
+use portable::datetime::DateTime;
+use portable::{alarm, button, datetime, ui};
 use pwm_speaker::songs::SO_WHAT;
 use rt::{exception, ExceptionFrame};
-use portable::datetime::DateTime;
 use rtfm::{app, Resource, Threshold};
-use portable::alarm;
 
-mod button;
 mod msg_queue;
 mod sound;
-mod ui;
 
 type I2C = hal::i2c::BlockingI2c<
     hal::stm32f103xx::I2C1,
@@ -131,7 +128,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
             hour: 23,
             min: 15,
             sec: 40,
-            day_of_week: portable::datetime::DayOfWeek::Wednesday,
+            day_of_week: datetime::DayOfWeek::Wednesday,
         };
         if let Some(epoch) = today.to_epoch() {
             rtc.set_cnt(epoch);
@@ -277,6 +274,11 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
         .claim_mut(t, |q, _| q.push(ui::Msg::DateTime(datetime)));
 
     let measurements = r.BME280.measure().unwrap();
+    let measurements = ::ui::Environment {
+        pressure: measurements.pressure as u32,
+        temperature: (measurements.temperature * 100.) as i16,
+        humidity: measurements.humidity as u8,
+    };
     r.MSG_QUEUE
         .claim_mut(t, |q, _| q.push(ui::Msg::Environment(measurements)));
 }

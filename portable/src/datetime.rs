@@ -92,7 +92,9 @@ impl DateTime {
         }
         let mut month = 1;
         for &nb in days_in_month(is_leap_year).iter() {
-            if days < nb { break; }
+            if days < nb {
+                break;
+            }
             days -= nb;
             month += 1;
         }
@@ -119,14 +121,15 @@ impl DateTime {
             }
         }
 
-        for &m in days_in_month(is_leap(self.year)).iter().take(self.month as usize - 1) {
+        for &m in days_in_month(is_leap(self.year))
+            .iter()
+            .take(self.month as usize - 1)
+        {
             days = days.checked_add(m)?;
         }
 
         let time = self.hour as u32 * 3600 + self.min as u32 * 60 + self.sec as u32;
-        let epoch = days
-            .checked_mul(86400)?
-            .checked_add(time)?;
+        let epoch = days.checked_mul(86400)?.checked_add(time)?;
         Some(epoch)
     }
 }
@@ -135,13 +138,7 @@ impl ::core::fmt::Display for DateTime {
         write!(
             f,
             "{:04}-{:02}-{:02} {:02}:{:02}:{:02} ({})",
-            self.year,
-            self.month,
-            self.day,
-            self.hour,
-            self.min,
-            self.sec,
-            self.day_of_week,
+            self.year, self.month, self.day, self.hour, self.min, self.sec, self.day_of_week,
         )
     }
 }

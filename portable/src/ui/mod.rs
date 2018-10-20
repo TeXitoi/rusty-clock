@@ -1,12 +1,11 @@
 use alarm::{Alarm, AlarmManager};
 use core::fmt::{self, Write};
+use datetime;
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::{Font6x8, Font8x16};
 use embedded_graphics::prelude::*;
-use embedded_hal::blocking::i2c::WriteRead;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
-use portable::datetime;
 
 mod header;
 mod menu;
@@ -16,7 +15,7 @@ mod state;
 #[derive(Debug)]
 pub enum Msg {
     DateTime(datetime::DateTime),
-    Environment(::bme280::Measurements<<::I2C as WriteRead>::Error>),
+    Environment(Environment),
     ButtonMinus,
     ButtonOk,
     ButtonPlus,
@@ -33,12 +32,7 @@ pub enum Cmd {
 #[derive(Clone)]
 pub struct Model {
     now: datetime::DateTime,
-    /// unit: Pa
-    pressure: u32,
-    /// unit: c°C
-    temperature: i16,
-    /// unit: %
-    humidity: u8,
+    env: Environment,
     alarm_manager: AlarmManager,
     screen: state::Screen,
 }
@@ -47,9 +41,7 @@ impl Model {
     pub fn init() -> Self {
         Self {
             now: datetime::DateTime::new(0),
-            pressure: 0,
-            temperature: 0,
-            humidity: 0,
+            env: Default::default(),
             alarm_manager: AlarmManager::default(),
             screen: state::Screen::Clock,
         }
@@ -65,11 +57,7 @@ impl Model {
                     cmds.push(Cmd::FullUpdate).unwrap();
                 }
             }
-            Msg::Environment(measurements) => {
-                self.pressure = measurements.pressure as u32;
-                self.temperature = (measurements.temperature * 100.) as i16;
-                self.humidity = measurements.humidity as u8;
-            }
+            Msg::Environment(measurements) => self.env = measurements,
             Msg::AlarmManager(am) => self.alarm_manager = am,
             Msg::ButtonOk => {
                 use self::state::{EditDateTime, MenuElt};
@@ -152,16 +140,16 @@ impl Model {
         }
 
         s.clear();
-        write!(s, "{}°C", Centi(self.temperature as i32)).unwrap();
+        write!(s, "{}°C", Centi(self.env.temperature as i32)).unwrap();
         header.bottom_left(&s);
 
         s.clear();
-        write!(s, "{}hPa", Centi(self.pressure as i32),).unwrap();
+        write!(s, "{}hPa", Centi(self.env.pressure as i32),).unwrap();
         header.bottom_right(&s);
 
-        if self.humidity != 0 {
+        if self.env.humidity != 0 {
             s.clear();
-            write!(s, "{:2}%RH", self.humidity).unwrap();
+            write!(s, "{:2}%RH", self.env.humidity).unwrap();
             header.bottom_center(&s);
         }
     }
@@ -224,5 +212,24 @@ struct Centi(i32);
 impl fmt::Display for Centi {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}.{:02}", self.0 / 100, self.0 % 100)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Environment {
+    /// unit: Pa
+    pub pressure: u32,
+    /// unit: c°C
+    pub temperature: i16,
+    /// unit: %
+    pub humidity: u8,
+}
+impl Default for Environment {
+    fn default() -> Self {
+        Self {
+            pressure: 0,
+            temperature: 0,
+            humidity: 0,
+        }
     }
 }

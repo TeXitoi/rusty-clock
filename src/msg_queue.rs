@@ -1,5 +1,5 @@
 use heapless::{consts::*, Vec};
-use ui::Msg;
+use portable::ui::Msg;
 
 pub struct MsgQueue {
     q: Vec<Msg, U16>,
