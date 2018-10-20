@@ -8,4 +8,4 @@ bitflags = "1.0"
 embedded-graphics = "0.4.1"
 heapless = "0.3.6"
 il3820 = { git = "https://github.com/TeXitoi/il3820" }
-embedded-hal = "0.2.1"
+embedded-hal = { version = "0.2.1", features = ["unproven"] }

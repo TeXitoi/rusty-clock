@@ -142,3 +142,66 @@ impl ::core::fmt::Display for DateTime {
         )
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    const EPOCH: DateTime = DateTime {
+        year: 1970,
+        month: 1,
+        day: 1,
+        hour: 0,
+        min: 0,
+        sec: 0,
+        day_of_week: DayOfWeek::Thursday,
+    };
+    const END_OF_TIME: DateTime = DateTime {
+        year: 2106,
+        month: 2,
+        day: 7,
+        hour: 6,
+        min: 28,
+        sec: 15,
+        day_of_week: DayOfWeek::Sunday,
+    };
+
+    #[test]
+    fn test_epoch() {
+        assert_eq!(DateTime::new(0), EPOCH);
+        assert_eq!(DateTime::new(core::u32::MAX), END_OF_TIME);
+        assert_eq!(
+            DateTime::new(1540052501),
+            DateTime {
+                year: 2018,
+                month: 10,
+                day: 20,
+                hour: 16,
+                min: 21,
+                sec: 41,
+                day_of_week: DayOfWeek::Saturday,
+            }
+        );
+        assert_eq!(EPOCH.to_epoch(), Some(0));
+        assert_eq!(END_OF_TIME.to_epoch(), Some(core::u32::MAX));
+        assert_eq!(
+            DateTime {
+                sec: 16,
+                ..END_OF_TIME
+            }.to_epoch(),
+            None
+        );
+        assert_eq!(
+            DateTime {
+                year: 1969,
+                month: 12,
+                day: 31,
+                hour: 23,
+                min: 59,
+                sec: 59,
+                day_of_week: DayOfWeek::Wednesday,
+            }.to_epoch(),
+            None
+        );
+    }
+}
