@@ -1,6 +1,6 @@
 use super::{menu, Cmd};
 use alarm::{Alarm, AlarmManager, Mode};
-use core::fmt::{self, Write};
+use core::fmt::Write;
 use datetime;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
@@ -54,7 +54,7 @@ impl MenuElt {
 
 #[derive(Debug, Clone)]
 pub struct EditDateTime {
-    datetime: datetime::DateTime,
+    pub datetime: datetime::DateTime,
     state: EditDateTimeState,
 }
 #[derive(Debug, Clone)]
@@ -113,16 +113,14 @@ impl EditDateTime {
         }
         None
     }
-}
-impl fmt::Display for EditDateTime {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    pub fn as_edit_str(&self) -> &'static str {
         use self::EditDateTimeState::*;
         match self.state {
-            Year => write!(f, "year: {}", self.datetime.year),
-            Month => write!(f, "month: {}", self.datetime.month),
-            Day => write!(f, "day: {}", self.datetime.day),
-            Hour => write!(f, "hour: {}", self.datetime.hour),
-            Min => write!(f, "min: {}", self.datetime.min),
+            Year => "Set year",
+            Month => "Set month",
+            Day => "Set day",
+            Hour => "Set hour",
+            Min => "Set minute",
         }
     }
 }

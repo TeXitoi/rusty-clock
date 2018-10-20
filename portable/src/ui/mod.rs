@@ -2,7 +2,7 @@ use alarm::{Alarm, AlarmManager};
 use core::fmt::{self, Write};
 use datetime;
 use embedded_graphics::coord::Coord;
-use embedded_graphics::fonts::{Font6x8, Font8x16};
+use embedded_graphics::fonts::Font6x8;
 use embedded_graphics::prelude::*;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
@@ -184,14 +184,9 @@ impl Model {
         menu::render("Menu:", elt.items(), *elt as i32, display);
     }
     fn render_set_clock(&self, datetime: &state::EditDateTime, display: &mut DisplayRibbonLeft) {
-        let mut s: String<U128> = String::new();
-        write!(s, "Set clock: {}", datetime).unwrap();
-        display.draw(
-            Font8x16::render_str(&s)
-                .with_stroke(Some(1u8.into()))
-                .translate(Coord::new(12, 44))
-                .into_iter(),
-        );
+        let mut title: String<U128> = String::new();
+        write!(title, "Edit clock: {}", datetime.datetime).unwrap();
+        menu::render(&title, &[datetime.as_edit_str()], 0, display);
     }
     fn render_manage_alarms(&self, i: usize, display: &mut DisplayRibbonLeft) {
         let v: Vec<_, U5> = self
