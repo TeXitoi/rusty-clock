@@ -3,7 +3,7 @@ use alarm::{Alarm, AlarmManager, Mode};
 use core::fmt::{self, Write};
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
-use rtc::datetime;
+use portable::datetime;
 
 macro_rules! manage_str {
     ( $alarm: ident, $d:ident, $m:ident ) => {

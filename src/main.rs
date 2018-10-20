@@ -1,7 +1,7 @@
 #![no_main]
 #![no_std]
 
-extern crate bitflags;
+extern crate portable;
 extern crate bme280;
 extern crate cortex_m;
 extern crate cortex_m_rt as rt;
@@ -10,6 +10,7 @@ extern crate embedded_graphics;
 extern crate embedded_hal;
 extern crate heapless;
 extern crate il3820;
+#[cfg(not(test))]
 extern crate panic_semihosting;
 extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
@@ -20,10 +21,10 @@ use heapless::consts::*;
 use heapless::Vec;
 use pwm_speaker::songs::SO_WHAT;
 use rt::{exception, ExceptionFrame};
-use rtc::datetime::DateTime;
+use portable::datetime::DateTime;
 use rtfm::{app, Resource, Threshold};
+use portable::alarm;
 
-mod alarm;
 mod button;
 mod msg_queue;
 mod sound;
@@ -130,7 +131,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
             hour: 23,
             min: 15,
             sec: 40,
-            day_of_week: rtc::datetime::DayOfWeek::Wednesday,
+            day_of_week: portable::datetime::DayOfWeek::Wednesday,
         };
         if let Some(epoch) = today.to_epoch() {
             rtc.set_cnt(epoch);

@@ -5,7 +5,9 @@ matrix:
     - rust: nightly
       env: RUN=BUILD
       before_script: rustup target add thumbv7m-none-eabi
-      script: cargo build --release
+      script:
+       - cargo build --release
+       - cd portable && cargo test --target x86_64-unknown-linux-gnu
     - rust: stable
       env: RUN=FMT
       before_script: rustup component add rustfmt-preview

@@ -3,6 +3,8 @@ name = "rusty-clock"
 version = "0.1.0"
 authors = ["Guillaume Pinot <texitoi@texitoi.eu>"]
 
+[workspace]
+
 [dependencies]
 stm32f103xx-hal = { git = "https://github.com/japaric/stm32f103xx-hal", branch = "master" }
 stm32f103xx = { version = "0.10", features = ["rt"] }
@@ -17,7 +19,7 @@ pwm-speaker = { git = "https://github.com/TeXitoi/pwm-speaker" }
 il3820 = { git = "https://github.com/TeXitoi/il3820" }
 embedded-hal = "0.2.1"
 embedded-graphics = "0.4.1"
-bitflags = "1.0"
+portable = { path = "portable" }
 
 [profile.dev]
 opt-level = 1

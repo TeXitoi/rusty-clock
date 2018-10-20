@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 use core::fmt;
-use rtc::datetime::{DateTime, DayOfWeek};
+use datetime::{DateTime, DayOfWeek};
 
 #[derive(Debug, Clone)]
 pub struct AlarmManager {
@@ -37,7 +37,7 @@ impl AlarmManager {
                         let mut days = (dow as u8 + 7 - dt.day_of_week as u8) % 7;
                         let now_h = time(dt.hour, dt.min);
                         let this_h = time(h, m);
-                        if this_h <= now_h {
+                        if dow == dt.day_of_week && this_h <= now_h {
                             days += 7
                         }
                         days as u32 * 60 * 24 + this_h
@@ -182,4 +182,35 @@ static VEC_DAY_OF_WEEK_SHORT_NAME: [(Mode, &str); 7] = [
 ];
 fn time(hour: u8, min: u8) -> u32 {
     hour as u32 * 60 + min as u32
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_next_ring() {
+        let mut alarm_manager = AlarmManager::default();
+        alarm_manager.alarms[0].is_enable = true;
+        alarm_manager.alarms[0].set_hour(7);
+        alarm_manager.alarms[0].set_min(25);
+        alarm_manager.alarms[0].mode = Mode::MONDAY | Mode::TUESDAY | Mode::THURSDAY | Mode::FRIDAY;
+        alarm_manager.alarms[1].is_enable = true;
+        alarm_manager.alarms[1].set_hour(8);
+        alarm_manager.alarms[1].set_min(15);
+        alarm_manager.alarms[1].mode = Mode::WEDNESDAY;
+
+        let datetime = DateTime {
+            year: 2018,
+            month: 10,
+            day: 17,
+            hour: 9,
+            min: 0,
+            sec: 0,
+            day_of_week: DayOfWeek::Wednesday,
+        };
+
+        let next = alarm_manager.next_ring(&datetime);
+        assert_eq!(next, Some((DayOfWeek::Thursday, 7, 25)));
+    }
 }

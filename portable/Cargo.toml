@@ -1,0 +1,7 @@
+[package]
+name = "portable"
+version = "0.1.0"
+authors = ["Guillaume Pinot <texitoi@texitoi.eu>"]
+
+[dependencies]
+bitflags = "1.0"

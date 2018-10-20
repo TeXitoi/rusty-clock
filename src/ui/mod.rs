@@ -6,7 +6,7 @@ use embedded_graphics::prelude::*;
 use embedded_hal::blocking::i2c::WriteRead;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
-use rtc::datetime;
+use portable::datetime;
 
 mod header;
 mod menu;
