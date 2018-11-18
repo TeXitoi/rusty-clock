@@ -16,8 +16,8 @@ impl<'a> SevenSegments<'a> {
     pub fn new(display: &'a mut DisplayRibbonLeft, x: i32, y: i32) -> Self {
         Self {
             display,
-            width: 50,
-            height: 92,
+            width: 52,
+            height: 90,
             thickness: 12,
             space: 13,
             x,

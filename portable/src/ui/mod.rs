@@ -2,7 +2,7 @@ use alarm::{Alarm, AlarmManager};
 use core::fmt::{self, Write};
 use datetime;
 use embedded_graphics::coord::Coord;
-use embedded_graphics::fonts::Font6x8;
+use embedded_graphics::fonts::Font8x16;
 use embedded_graphics::prelude::*;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
@@ -134,7 +134,7 @@ impl Model {
             None => header.top_right("No alarm"),
             Some((dow, h, m)) => {
                 s.clear();
-                write!(s, "Alarm: {} {}:{:02}", dow, h, m).unwrap();
+                write!(s, "Al: {} {}:{:02}", dow, h, m).unwrap();
                 header.top_right(&s);
             }
         }
@@ -154,7 +154,7 @@ impl Model {
         }
     }
     fn render_clock(&self, display: &mut DisplayRibbonLeft) {
-        let mut seven = seven_segments::SevenSegments::new(display, 4, 18);
+        let mut seven = seven_segments::SevenSegments::new(display, 0, 18);
 
         if self.now.hour >= 10 {
             seven.digit(self.now.hour / 10);
@@ -174,9 +174,9 @@ impl Model {
         let mut s: String<U4> = String::new();
         write!(s, ":{:02}", self.now.sec).unwrap();
         display.draw(
-            Font6x8::render_str(&s)
+            Font8x16::render_str(&s)
                 .with_stroke(Some(1u8.into()))
-                .translate(Coord::new(273, 18))
+                .translate(Coord::new(296 - 3 * 8, 17))
                 .into_iter(),
         );
     }

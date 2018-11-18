@@ -1,11 +1,11 @@
 use embedded_graphics::coord::Coord;
-use embedded_graphics::fonts::Font6x8;
+use embedded_graphics::fonts::Font8x16;
 use embedded_graphics::prelude::*;
 use il3820::DisplayRibbonLeft;
 
-const MARGIN: i32 = 4;
-const FONT_HEIGHT: i32 = 8;
-const FONT_WIDTH: i32 = 6;
+const MARGIN: i32 = 0;
+const FONT_HEIGHT: i32 = 16;
+const FONT_WIDTH: i32 = 8;
 const BOTTOM_Y: i32 = 128 - MARGIN - FONT_HEIGHT;
 
 pub struct Header<'a> {
@@ -39,7 +39,7 @@ impl<'a> Header<'a> {
     }
     fn render(&mut self, s: &str, x: i32, y: i32) {
         self.display.draw(
-            Font6x8::render_str(s)
+            Font8x16::render_str(s)
                 .with_stroke(Some(1u8.into()))
                 .translate(Coord::new(x, y))
                 .into_iter(),
