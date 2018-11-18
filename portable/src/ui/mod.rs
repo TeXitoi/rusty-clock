@@ -185,7 +185,11 @@ impl Model {
     }
     fn render_set_clock(&self, dt: &state::EditDateTime, display: &mut DisplayRibbonLeft) {
         let mut title: String<U128> = String::new();
-        write!(title, "Edit: {:04}-{:02}-{:02} {:02}:{:02}", dt.datetime.year, dt.datetime.month, dt.datetime.day, dt.datetime.hour, dt.datetime.min).unwrap();
+        write!(
+            title,
+            "Edit: {:04}-{:02}-{:02} {:02}:{:02}",
+            dt.datetime.year, dt.datetime.month, dt.datetime.day, dt.datetime.hour, dt.datetime.min
+        ).unwrap();
         menu::render(&title, &[dt.as_edit_str()], 0, display);
     }
     fn render_manage_alarms(&self, i: usize, display: &mut DisplayRibbonLeft) {
