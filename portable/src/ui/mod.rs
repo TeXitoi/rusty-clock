@@ -134,7 +134,7 @@ impl Model {
             None => header.top_right("No alarm"),
             Some((dow, h, m)) => {
                 s.clear();
-                write!(s, "Alarm: {} {}:{:02}", dow, h, m);
+                write!(s, "Alarm: {} {}:{:02}", dow, h, m).unwrap();
                 header.top_right(&s);
             }
         }
