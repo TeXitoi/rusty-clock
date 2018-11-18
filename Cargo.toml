@@ -20,6 +20,9 @@ il3820 = { git = "https://github.com/TeXitoi/il3820" }
 embedded-hal = "0.2.1"
 portable = { path = "portable" }
 
+[patch.crates-io]
+heapless = { git = 'https://github.com/TeXitoi/heapless', branch = "v0.3" }
+
 [profile.dev]
 opt-level = 1
 lto = true
