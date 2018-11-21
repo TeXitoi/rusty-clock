@@ -47,6 +47,9 @@ impl MenuElt {
             ManageAlarms => SetClock,
         }
     }
+    pub fn cancel(&mut self) -> Screen {
+        Screen::Clock
+    }
     pub fn items(&self) -> &'static [&'static str] {
         &["Main screen", "Set clock", "Manage alarms"]
     }
@@ -102,6 +105,9 @@ impl EditDateTime {
             Min => self.datetime.min = (self.datetime.min + 60 - 1) % 60,
         }
     }
+    pub fn cancel(&mut self) -> Screen {
+        Screen::Clock
+    }
     pub fn ok(&mut self) -> Option<datetime::DateTime> {
         use self::EditDateTimeState::*;
         match self.state {
@@ -147,6 +153,9 @@ impl ManageAlarm {
     }
     pub fn prev(&mut self) {
         self.state = self.state.prev(&mut self.alarm);
+    }
+    pub fn cancel(&mut self) -> Screen {
+        Screen::Clock
     }
     pub fn render(&self, display: &mut DisplayRibbonLeft) {
         self.state.render(&self.alarm, display);

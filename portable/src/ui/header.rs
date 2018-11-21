@@ -29,7 +29,7 @@ impl<'a> Header<'a> {
     pub fn bottom_left(&mut self, s: &str) {
         self.render(s, MARGIN, BOTTOM_Y);
     }
-    pub fn bottom_center(&mut self, s: &str) {
+    pub fn _bottom_center(&mut self, s: &str) {
         let len = s.chars().count() as i32;
         self.render(s, 296 / 2 - FONT_WIDTH * len / 2, BOTTOM_Y);
     }

@@ -34,9 +34,10 @@ type I2C = hal::i2c::BlockingI2c<
         hal::gpio::gpiob::PB7<hal::gpio::Alternate<hal::gpio::OpenDrain>>,
     ),
 >;
-type Button0Pin = hal::gpio::gpioa::PA7<hal::gpio::Input<hal::gpio::PullUp>>;
-type Button1Pin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::PullUp>>;
-type Button2Pin = hal::gpio::gpiob::PB1<hal::gpio::Input<hal::gpio::PullUp>>;
+type Button0Pin = hal::gpio::gpioa::PA6<hal::gpio::Input<hal::gpio::PullUp>>;
+type Button1Pin = hal::gpio::gpioa::PA7<hal::gpio::Input<hal::gpio::PullUp>>;
+type Button2Pin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::PullUp>>;
+type Button3Pin = hal::gpio::gpiob::PB1<hal::gpio::Input<hal::gpio::PullUp>>;
 type Spi = hal::spi::Spi<
     hal::stm32f103xx::SPI2,
     (
@@ -64,6 +65,7 @@ app! {
         static BUTTON0: button::Button<Button0Pin>;
         static BUTTON1: button::Button<Button1Pin>;
         static BUTTON2: button::Button<Button2Pin>;
+        static BUTTON3: button::Button<Button3Pin>;
         static DISPLAY: EPaperDisplay;
         static SPI: Spi;
         static UI: ui::Model;
@@ -89,7 +91,7 @@ app! {
         },
         TIM3: {
             path: one_khz,
-            resources: [BUTTON0, BUTTON1, BUTTON2, SOUND, MSG_QUEUE],
+            resources: [BUTTON0, BUTTON1, BUTTON2, BUTTON3, SOUND, MSG_QUEUE],
             priority: 4,
         },
     },
@@ -111,9 +113,10 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     pwm.enable();
     let speaker = pwm_speaker::Speaker::new(pwm, clocks);
 
-    let button0_pin = gpioa.pa7.into_pull_up_input(&mut gpioa.crl);
-    let button1_pin = gpiob.pb0.into_pull_up_input(&mut gpiob.crl);
-    let button2_pin = gpiob.pb1.into_pull_up_input(&mut gpiob.crl);
+    let button0_pin = gpioa.pa6.into_pull_up_input(&mut gpioa.crl);
+    let button1_pin = gpioa.pa7.into_pull_up_input(&mut gpioa.crl);
+    let button2_pin = gpiob.pb0.into_pull_up_input(&mut gpiob.crl);
+    let button3_pin = gpiob.pb1.into_pull_up_input(&mut gpiob.crl);
 
     let mut timer = hal::timer::Timer::tim3(p.device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
     timer.listen(hal::timer::Event::Update);
@@ -200,6 +203,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
         BUTTON0: button::Button::new(button0_pin),
         BUTTON1: button::Button::new(button1_pin),
         BUTTON2: button::Button::new(button2_pin),
+        BUTTON3: button::Button::new(button3_pin),
         DISPLAY: il3820,
         SPI: spi,
         UI: ui::Model::init(),
@@ -291,14 +295,17 @@ fn one_khz(_t: &mut rtfm::Threshold, mut r: TIM3::Resources) {
     };
 
     if let button::Event::Pressed = r.BUTTON0.poll() {
-        r.MSG_QUEUE.push(ui::Msg::ButtonMinus);
+        r.SOUND.stop();
+        r.MSG_QUEUE.push(ui::Msg::ButtonCancel);
     }
     if let button::Event::Pressed = r.BUTTON1.poll() {
-        r.SOUND.stop();
-        r.MSG_QUEUE.push(ui::Msg::ButtonOk);
+        r.MSG_QUEUE.push(ui::Msg::ButtonMinus);
     }
     if let button::Event::Pressed = r.BUTTON2.poll() {
         r.MSG_QUEUE.push(ui::Msg::ButtonPlus);
+    }
+    if let button::Event::Pressed = r.BUTTON3.poll() {
+        r.MSG_QUEUE.push(ui::Msg::ButtonOk);
     }
     r.SOUND.poll();
 }

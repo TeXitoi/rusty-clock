@@ -16,9 +16,10 @@ mod state;
 pub enum Msg {
     DateTime(datetime::DateTime),
     Environment(Environment),
+    ButtonCancel,
     ButtonMinus,
-    ButtonOk,
     ButtonPlus,
+    ButtonOk,
     AlarmManager(AlarmManager),
 }
 
@@ -83,6 +84,18 @@ impl Model {
                     cmds.push(Cmd::FullUpdate).unwrap();
                 }
             }
+            Msg::ButtonCancel => {
+                self.screen = match ::core::mem::replace(&mut self.screen, Clock) {
+                    Clock => Clock,
+                    Menu(mut state) => state.cancel(),
+                    SetClock(mut state) => state.cancel(),
+                    ManageAlarms(_) => Clock,
+                    ManageAlarm(mut state) => state.cancel(),
+                };
+                if let Clock = self.screen {
+                    cmds.push(Cmd::FullUpdate).unwrap();
+                }
+            }
             Msg::ButtonPlus => match &mut self.screen {
                 Clock => {}
                 Menu(state) => state.next(),
@@ -131,27 +144,24 @@ impl Model {
         header.top_left(&s);
 
         match self.alarm_manager.next_ring(&self.now) {
-            None => header.top_right("No alarm"),
+            None => header.bottom_left("No alarm"),
             Some((dow, h, m)) => {
                 s.clear();
-                write!(s, "Al: {} {}:{:02}", dow, h, m).unwrap();
-                header.top_right(&s);
+                write!(s, "Alarm: {} {}:{:02}", dow, h, m).unwrap();
+                header.bottom_left(&s);
             }
         }
-
-        s.clear();
-        write!(s, "{}°C", Centi(self.env.temperature as i32)).unwrap();
-        header.bottom_left(&s);
 
         s.clear();
         write!(s, "{}hPa", Centi(self.env.pressure as i32),).unwrap();
         header.bottom_right(&s);
 
+        s.clear();
         if self.env.humidity != 0 {
-            s.clear();
-            write!(s, "{:2}%RH", self.env.humidity).unwrap();
-            header.bottom_center(&s);
+            write!(s, "{:2}%RH  ", self.env.humidity).unwrap();
         }
+        write!(s, "{}°C", Centi(self.env.temperature as i32)).unwrap();
+        header.top_right(&s);
     }
     fn render_clock(&self, display: &mut DisplayRibbonLeft) {
         let mut seven = seven_segments::SevenSegments::new(display, 0, 18);
