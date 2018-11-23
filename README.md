@@ -1,6 +1,6 @@
-# rusty-clock [![Build status](https://travis-ci.org/TeXitoi/rusty-clock.svg?branch=master)](https://travis-ci.org/TeXitoi/rusty-clock)
+# Rusty clock [![Build status](https://travis-ci.org/TeXitoi/rusty-clock.svg?branch=master)](https://travis-ci.org/TeXitoi/rusty-clock)
 
-An alarm clock with environment stats in pure rust.
+An alarm clock with environment stats in pure embedded rust.
 
 ![fromt](images/front.jpg)
 ![back](images/back.jpg)
