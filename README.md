@@ -16,5 +16,12 @@ The hardware used in this project is
 - a [WaveShare e-paper display](https://www.waveshare.com/wiki/2.9inch_e-Paper_Module);
 - a [BME280 sensor](https://www.bosch-sensortec.com/bst/products/all_products/bme280) for temperature, humidity and pressure;
 - a passive buzzer driven by PWM;
-- 4 buttons (cancel, previous, next, OK);
-- a 3D printed case.
+- 4 [16mm self-reset buttons](https://www.aliexpress.com/item/16mm-Metal-Push-Button-Switch-IP67-Waterproof-Nickel-plated-brass-press-button-Self-reset-1NO-High/32867071630.html) (cancel, previous, next, OK);
+- a [3D printed case](cad/);
+- USB power plug;
+- micro USB cable;
+- wires and soldering set.
+
+You also need a [ST-Linkv2](https://www.aliexpress.com/wholesale?SearchText=stlink+v2) to flash and debug.
+
+Everything can be purchased on [Aliexpress](https://www.aliexpress.com/) for less that 50$ (without the 3D printed case).
