@@ -25,3 +25,37 @@ The hardware used in this project is
 You also need a [ST-Linkv2](https://www.aliexpress.com/wholesale?SearchText=stlink+v2) to flash and debug.
 
 Everything can be purchased on [Aliexpress](https://www.aliexpress.com/) for less that 50$ (without the 3D printed case).
+
+## Wireing
+
+Everything is plugged directly to the blue pill board.
+
+E-paper display to blue pill board:
+- BUSY -> A10
+- RST -> A9
+- DC -> A8
+- CS -> B12
+- CLK -> B13
+- DIN -> B15
+- GND -> G
+- VCC -> 3.3
+
+BME280 to blue pill board:
+- VIN -> 3.3
+- GND -> G
+- SCL -> B6
+- SDA -> B7
+
+Buttons are connected between G and
+- A6 for cancel
+- A6 for previous
+- B0 for next
+- B1 for OK
+
+Passive buzzer is connected between G and A0.
+
+Coin battery to blue pill board:
+- (-) -> G
+- (+) -> VB
+
+Plug the micro USB connector of the blue pill board to a USB power supply (or a computer).
