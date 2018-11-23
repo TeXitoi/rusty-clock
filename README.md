@@ -25,7 +25,7 @@ The hardware used in this project is
 
 You also need a [ST-Linkv2](https://www.aliexpress.com/wholesale?SearchText=stlink+v2) to flash and debug.
 
-Everything can be purchased on [Aliexpress](https://www.aliexpress.com/) for less that 50$ (without the 3D printed case).
+Everything can be purchased on [Aliexpress](https://www.aliexpress.com/). Budget is around US $35 without the 3D printed case and soldering set.
 
 ## Wiring
 
