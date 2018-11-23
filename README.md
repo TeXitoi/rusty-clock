@@ -20,6 +20,7 @@ The hardware used in this project is
 - a [3D printed case](cad/);
 - USB power plug;
 - micro USB cable;
+- a CR2016 coin battery (optional);
 - wires and soldering set.
 
 You also need a [ST-Linkv2](https://www.aliexpress.com/wholesale?SearchText=stlink+v2) to flash and debug.
@@ -48,7 +49,7 @@ BME280 to blue pill board:
 
 Buttons are connected between G and
 - A6 for cancel
-- A6 for previous
+- A7 for previous
 - B0 for next
 - B1 for OK
 
