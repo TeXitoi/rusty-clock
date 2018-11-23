@@ -27,7 +27,7 @@ You also need a [ST-Linkv2](https://www.aliexpress.com/wholesale?SearchText=stli
 
 Everything can be purchased on [Aliexpress](https://www.aliexpress.com/) for less that 50$ (without the 3D printed case).
 
-## Wireing
+## Wiring
 
 Everything is plugged directly to the blue pill board.
 
