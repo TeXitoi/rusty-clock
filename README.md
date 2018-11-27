@@ -21,7 +21,8 @@ The hardware used in this project is
 - USB power plug;
 - micro USB cable;
 - a CR20xx coin battery (optional);
-- wires and soldering set.
+- wires and soldering set;
+- 4 2mm wood screws.
 
 You also need a [ST-Link v2](https://www.aliexpress.com/wholesale?SearchText=stlink+v2) to flash and debug.
 
