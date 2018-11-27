@@ -4,6 +4,7 @@ An alarm clock with environment stats in pure bare metal embedded rust.
 
 ![fromt](images/front.jpg)
 ![back](images/back.jpg)
+![open](images/open.jpg)
 
 ## Description
 
