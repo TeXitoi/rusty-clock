@@ -16,16 +16,16 @@ The hardware used in this project is
 - a [blue pill board](https://wiki.stm32duino.com/index.php?title=Blue_Pill) featuring a STM32F103C8 microcontroller (20KiB RAM, 64 KiB flash, ARM Cortex M3 @72MHz);
 - a [2.9" WaveShare e-paper display](https://www.waveshare.com/wiki/2.9inch_e-Paper_Module) (296x128 black or white pixels);
 - a [BME280 sensor](https://www.bosch-sensortec.com/bst/products/all_products/bme280) for temperature, humidity and pressure;
-- a passive buzzer driven by PWM;
-- 4 [16mm normally open push buttons](https://www.aliexpress.com/item/16mm-Metal-Push-Button-Switch-IP67-Waterproof-Nickel-plated-brass-press-button-Self-reset-1NO-High/32867071630.html) (cancel, previous, next, OK);
+- a [passive buzzer](https://www.aliexpress.com/item/a/32825515257.html) driven by PWM;
+- 4 [16mm normally open push buttons](https://www.aliexpress.com/item/a/32867071630.html) (cancel, previous, next, OK);
 - a [3D printed case](cad/);
 - USB power plug;
 - micro USB cable;
 - a CR20xx coin battery (optional);
-- wires and soldering set;
+- wires (I use [single core wires](https://www.aliexpress.com/item/a/32832816460.html)) and soldering set;
 - 4 2mm wood screws.
 
-You also need a [ST-Link v2](https://www.aliexpress.com/wholesale?SearchText=stlink+v2) to flash and debug.
+You also need a [ST-Link v2](https://www.aliexpress.com/item/a/32719963657.html) to flash and debug.
 
 Everything can be purchased on [Aliexpress](https://www.aliexpress.com/). Budget is around US $35 without the 3D printed case and soldering set.
 
