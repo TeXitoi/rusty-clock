@@ -140,6 +140,9 @@ impl Alarm {
         } else {
             datetime.day_of_week
         };
+        if self.mode.contains(Mode::ONE_TIME) {
+            return Some((day, self.hour, self.min));
+        }
         loop {
             if self.mode.contains_dow(day) {
                 return Some((day, self.hour, self.min));
@@ -188,8 +191,7 @@ fn time(hour: u8, min: u8) -> u32 {
 mod test {
     use super::*;
 
-    #[test]
-    fn test_next_ring() {
+    fn default_alarm_manager() -> AlarmManager {
         let mut alarm_manager = AlarmManager::default();
         alarm_manager.alarms[0].is_enable = true;
         alarm_manager.alarms[0].set_hour(7);
@@ -199,6 +201,12 @@ mod test {
         alarm_manager.alarms[1].set_hour(8);
         alarm_manager.alarms[1].set_min(15);
         alarm_manager.alarms[1].mode = Mode::WEDNESDAY;
+        alarm_manager
+    }
+
+    #[test]
+    fn test_next_ring() {
+        let alarm_manager = default_alarm_manager();
 
         let datetime = DateTime {
             year: 2018,
@@ -212,5 +220,49 @@ mod test {
 
         let next = alarm_manager.next_ring(&datetime);
         assert_eq!(next, Some((DayOfWeek::Thursday, 7, 25)));
+    }
+
+    #[test]
+    fn test_next_ring_one_time() {
+        let mut alarm_manager = default_alarm_manager();
+        alarm_manager.alarms[2].is_enable = true;
+        alarm_manager.alarms[2].set_hour(17);
+        alarm_manager.alarms[2].set_min(30);
+        alarm_manager.alarms[2].mode.insert(Mode::ONE_TIME);
+
+        let datetime = DateTime {
+            year: 2018,
+            month: 12,
+            day: 1,
+            hour: 17,
+            min: 21,
+            sec: 0,
+            day_of_week: DayOfWeek::Saturday,
+        };
+
+        let next = alarm_manager.next_ring(&datetime);
+        assert_eq!(next, Some((DayOfWeek::Saturday, 17, 30)));
+    }
+
+    #[test]
+    fn test_next_ring_never() {
+        let mut alarm_manager = default_alarm_manager();
+        alarm_manager.alarms[2].is_enable = true;
+        alarm_manager.alarms[2].set_hour(17);
+        alarm_manager.alarms[2].set_min(30);
+        alarm_manager.alarms[2].mode = Mode::empty();
+
+        let datetime = DateTime {
+            year: 2018,
+            month: 12,
+            day: 1,
+            hour: 17,
+            min: 21,
+            sec: 0,
+            day_of_week: DayOfWeek::Saturday,
+        };
+
+        let next = alarm_manager.next_ring(&datetime);
+        assert_eq!(next, Some((DayOfWeek::Monday, 7, 25)));
     }
 }
