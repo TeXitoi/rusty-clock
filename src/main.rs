@@ -101,7 +101,13 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     let mut flash = p.device.FLASH.constrain();
     let mut rcc = p.device.RCC.constrain();
     let mut afio = p.device.AFIO.constrain(&mut rcc.apb2);
-    let clocks = rcc.cfgr.freeze(&mut flash.acr);
+    let clocks = rcc
+        .cfgr
+        .use_hse(8.mhz())
+        .hclk(48.mhz())
+        .sysclk(48.mhz())
+        .pclk1(24.mhz())
+        .freeze(&mut flash.acr);
     let mut gpioa = p.device.GPIOA.split(&mut rcc.apb2);
     let mut gpiob = p.device.GPIOB.split(&mut rcc.apb2);
 

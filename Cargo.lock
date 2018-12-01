@@ -367,7 +367,7 @@ dependencies = [
 [[package]]
 name = "stm32f103xx-hal"
 version = "0.1.0"
-source = "git+https://github.com/japaric/stm32f103xx-hal#45ff8686f16ed0d9d97adfbafb73c21e9e9ee7e8"
+source = "git+https://github.com/japaric/stm32f103xx-hal#d1bfbbf9148fc3b9d095fdb3f299aca4070531d8"
 dependencies = [
  "cast 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
