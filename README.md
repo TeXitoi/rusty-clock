@@ -15,7 +15,7 @@ This alarm clock is programed in bare metal rust (no OS). It features pressure, 
 The hardware used in this project is
 - a [blue pill board](https://wiki.stm32duino.com/index.php?title=Blue_Pill) featuring a STM32F103C8 microcontroller (20KiB RAM, 64 KiB flash, ARM Cortex M3 @72MHz);
 - a [2.9" WaveShare e-paper display](https://www.waveshare.com/wiki/2.9inch_e-Paper_Module) (296x128 black or white pixels);
-- a [BME280 sensor](https://www.bosch-sensortec.com/bst/products/all_products/bme280) for temperature, humidity and pressure;
+- a [BME280 sensor](https://www.bosch-sensortec.com/bst/products/all_products/bme280) for temperature, humidity and pressure on a [I2C compatible PCB (VIN, GND, SCL and SDA pins)](https://www.aliexpress.com/item/a/32847825408.html);
 - a [passive buzzer](https://www.aliexpress.com/item/a/32825515257.html) driven by PWM;
 - 4 [16mm normally open push buttons](https://www.aliexpress.com/item/a/32867071630.html) (cancel, previous, next, OK);
 - a [3D printed case](cad/);
