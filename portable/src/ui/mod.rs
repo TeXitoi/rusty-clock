@@ -1,5 +1,5 @@
-use crate::alarm::{Alarm, AlarmManager};
 use core::fmt::{self, Write};
+use crate::alarm::{Alarm, AlarmManager};
 use crate::datetime;
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::Font8x16;

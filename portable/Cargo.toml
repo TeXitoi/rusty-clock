@@ -2,10 +2,11 @@
 name = "portable"
 version = "0.1.0"
 authors = ["Guillaume Pinot <texitoi@texitoi.eu>"]
+edition = "2018"
 
 [dependencies]
 bitflags = "1.0"
 embedded-graphics = "0.4.1"
-heapless = "0.3.6"
+heapless = "0.4"
 il3820 = { git = "https://github.com/TeXitoi/il3820" }
 embedded-hal = { version = "0.2.1", features = ["unproven"] }
