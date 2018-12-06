@@ -160,7 +160,7 @@ const APP: () = {
             &mut afio.mapr,
             hal::i2c::Mode::Fast {
                 frequency: 400_000,
-                duty_cycle: hal::i2c::DutyCycle::Ratio16to9,
+                duty_cycle: hal::i2c::DutyCycle::Ratio2to1,
             },
             clocks,
             &mut rcc.apb1,
