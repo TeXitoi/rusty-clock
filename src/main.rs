@@ -230,11 +230,18 @@ const APP: () = {
             .MSG_QUEUE
             .lock(|q| q.push(ui::Msg::DateTime(datetime)));
 
-        let measurements = resources.BME280.measure().unwrap();
-        let measurements = crate::ui::Environment {
-            pressure: measurements.pressure as u32,
-            temperature: (measurements.temperature * 100.) as i16,
-            humidity: measurements.humidity as u8,
+        let measurements = if let Ok(measurements) = resources.BME280.measure() {
+            crate::ui::Environment {
+                pressure: measurements.pressure as u32,
+                temperature: (measurements.temperature * 100.) as i16,
+                humidity: measurements.humidity as u8,
+            }
+        } else {
+            crate::ui::Environment {
+                pressure: 0,
+                temperature: 0,
+                humidity: 0,
+            }
         };
         resources
             .MSG_QUEUE
