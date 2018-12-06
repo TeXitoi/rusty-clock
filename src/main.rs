@@ -152,6 +152,8 @@ const APP: () = {
         );
         il3820.clear(&mut spi).unwrap();
 
+        core.DCB.enable_trace();
+        core.DWT.enable_cycle_counter();
         let pb6 = gpiob.pb6.into_alternate_open_drain(&mut gpiob.crl);
         let pb7 = gpiob.pb7.into_alternate_open_drain(&mut gpiob.crl);
         let i2c = hal::i2c::I2c::i2c1(
