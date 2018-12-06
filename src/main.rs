@@ -15,14 +15,14 @@ extern crate pwm_speaker;
 extern crate stm32f103xx_hal as hal;
 extern crate stm32f103xx_rtc as rtc;
 
-use hal::prelude::*;
+use crate::hal::prelude::*;
 use heapless::consts::*;
 use heapless::Vec;
 use portable::datetime::DateTime;
 use portable::{alarm, button, datetime, ui};
 use pwm_speaker::songs::SO_WHAT;
-use rt::{exception, ExceptionFrame};
-use rtfm::{app, Resource, Threshold};
+use crate::rt::{exception, ExceptionFrame};
+use crate::rtfm::{app, Resource, Threshold};
 
 mod msg_queue;
 mod sound;
@@ -145,7 +145,7 @@ fn init(mut p: init::Peripherals) -> init::LateResources {
     }
     rtc.enable_second_interrupt(&mut p.core.NVIC);
 
-    use alarm::Mode;
+    use crate::alarm::Mode;
     let mut alarm_manager = alarm::AlarmManager::default();
     alarm_manager.alarms[0].is_enable = true;
     alarm_manager.alarms[0].set_hour(7);
@@ -227,7 +227,7 @@ pub fn msgs(t: &mut rtfm::Threshold, mut r: EXTI2::Resources) {
         }
         let cmds: Vec<_, U16> = msgs.into_iter().flat_map(|msg| r.UI.update(msg)).collect();
         for cmd in cmds {
-            use ui::Cmd::*;
+            use crate::ui::Cmd::*;
             match cmd {
                 UpdateRtc(dt) => if let Some(epoch) = dt.to_epoch() {
                     r.RTC_DEV.claim_mut(t, |rtc, _| {
@@ -284,7 +284,7 @@ fn handle_rtc(t: &mut rtfm::Threshold, mut r: RTC::Resources) {
         .claim_mut(t, |q, _| q.push(ui::Msg::DateTime(datetime)));
 
     let measurements = r.BME280.measure().unwrap();
-    let measurements = ::ui::Environment {
+    let measurements = crate::ui::Environment {
         pressure: measurements.pressure as u32,
         temperature: (measurements.temperature * 100.) as i16,
         humidity: measurements.humidity as u8,

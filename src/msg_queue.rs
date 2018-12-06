@@ -12,7 +12,7 @@ impl MsgQueue {
         if let Err(_) = self.q.push(msg) {
             panic!("msg queue full");
         }
-        ::rtfm::set_pending(::hal::stm32f103xx::Interrupt::EXTI2);
+        crate::rtfm::set_pending(crate::hal::stm32f103xx::Interrupt::EXTI2);
     }
     pub fn get(&mut self) -> Vec<Msg, U16> {
         ::core::mem::replace(&mut self.q, Vec::new())

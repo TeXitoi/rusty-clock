@@ -1,6 +1,6 @@
-use alarm::{Alarm, AlarmManager};
+use crate::alarm::{Alarm, AlarmManager};
 use core::fmt::{self, Write};
-use datetime;
+use crate::datetime;
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::Font8x16;
 use embedded_graphics::prelude::*;

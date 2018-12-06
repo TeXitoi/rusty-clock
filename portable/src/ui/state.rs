@@ -1,7 +1,7 @@
 use super::{menu, Cmd};
-use alarm::{Alarm, AlarmManager, Mode};
+use crate::alarm::{Alarm, AlarmManager, Mode};
 use core::fmt::Write;
-use datetime;
+use crate::datetime;
 use heapless::{consts::*, String, Vec};
 use il3820::DisplayRibbonLeft;
 
