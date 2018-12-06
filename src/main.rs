@@ -77,9 +77,8 @@ const APP: () = {
         let clocks = rcc
             .cfgr
             .use_hse(8.mhz())
-            .hclk(48.mhz())
-            .sysclk(48.mhz())
-            .pclk1(24.mhz())
+            .sysclk(72.mhz())
+            .pclk1(36.mhz())
             .freeze(&mut flash.acr);
         let mut gpioa = device.GPIOA.split(&mut rcc.apb2);
         let mut gpiob = device.GPIOB.split(&mut rcc.apb2);
