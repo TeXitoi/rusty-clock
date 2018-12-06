@@ -188,7 +188,8 @@ mod test {
             DateTime {
                 sec: 16,
                 ..END_OF_TIME
-            }.to_epoch(),
+            }
+            .to_epoch(),
             None
         );
         assert_eq!(
@@ -200,7 +201,8 @@ mod test {
                 min: 59,
                 sec: 59,
                 day_of_week: DayOfWeek::Wednesday,
-            }.to_epoch(),
+            }
+            .to_epoch(),
             None
         );
     }

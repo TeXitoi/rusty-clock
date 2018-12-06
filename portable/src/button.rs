@@ -24,16 +24,20 @@ impl<T: ::embedded_hal::digital::InputPin> Button<T> {
         use self::State::*;
         let value = self.button.is_high();
         match &mut self.state {
-            High(cnt) => if value {
-                *cnt = 0
-            } else {
-                *cnt += 1
-            },
-            Low(cnt) => if value {
-                *cnt += 1
-            } else {
-                *cnt = 0
-            },
+            High(cnt) => {
+                if value {
+                    *cnt = 0
+                } else {
+                    *cnt += 1
+                }
+            }
+            Low(cnt) => {
+                if value {
+                    *cnt += 1
+                } else {
+                    *cnt = 0
+                }
+            }
         }
         match self.state {
             High(cnt) if cnt >= 30 => {

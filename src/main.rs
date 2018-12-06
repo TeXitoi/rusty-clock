@@ -254,12 +254,14 @@ const APP: () = {
             for cmd in cmds {
                 use crate::ui::Cmd::*;
                 match cmd {
-                    UpdateRtc(dt) => if let Some(epoch) = dt.to_epoch() {
-                        resources.RTC_DEV.lock(|rtc| {
-                            let _ = rtc.set_cnt(epoch);
-                        });
-                        resources.MSG_QUEUE.lock(|q| q.push(ui::Msg::DateTime(dt)));
-                    },
+                    UpdateRtc(dt) => {
+                        if let Some(epoch) = dt.to_epoch() {
+                            resources.RTC_DEV.lock(|rtc| {
+                                let _ = rtc.set_cnt(epoch);
+                            });
+                            resources.MSG_QUEUE.lock(|q| q.push(ui::Msg::DateTime(dt)));
+                        }
+                    }
                     UpdateAlarm(alarm, i) => {
                         let manager = resources.ALARM_MANAGER.lock(|m| {
                             m.alarms[i] = alarm;

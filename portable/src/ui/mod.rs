@@ -1,6 +1,6 @@
-use core::fmt::{self, Write};
 use crate::alarm::{Alarm, AlarmManager};
 use crate::datetime;
+use core::fmt::{self, Write};
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::Font8x16;
 use embedded_graphics::prelude::*;
@@ -71,12 +71,14 @@ impl Model {
                         SetClock(EditDateTime::new(dt))
                     }
                     Menu(MenuElt::ManageAlarms) => ManageAlarms(0),
-                    SetClock(mut edit) => if let Some(dt) = edit.ok() {
-                        cmds.push(Cmd::UpdateRtc(dt)).unwrap();
-                        Clock
-                    } else {
-                        SetClock(edit)
-                    },
+                    SetClock(mut edit) => {
+                        if let Some(dt) = edit.ok() {
+                            cmds.push(Cmd::UpdateRtc(dt)).unwrap();
+                            Clock
+                        } else {
+                            SetClock(edit)
+                        }
+                    }
                     ManageAlarms(i) => ManageAlarm(state::ManageAlarm::new(&self.alarm_manager, i)),
                     ManageAlarm(state) => state.ok(&mut cmds),
                 };
@@ -140,7 +142,8 @@ impl Model {
             s,
             "{:4}-{:02}-{:02} {}",
             self.now.year, self.now.month, self.now.day, self.now.day_of_week,
-        ).unwrap();
+        )
+        .unwrap();
         header.top_left(&s);
 
         match self.alarm_manager.next_ring(&self.now) {
@@ -199,7 +202,8 @@ impl Model {
             title,
             "Edit: {:04}-{:02}-{:02} {:02}:{:02}",
             dt.datetime.year, dt.datetime.month, dt.datetime.day, dt.datetime.hour, dt.datetime.min
-        ).unwrap();
+        )
+        .unwrap();
         menu::render(&title, &[dt.as_edit_str()], 0, display);
     }
     fn render_manage_alarms(&self, i: usize, display: &mut DisplayRibbonLeft) {
@@ -211,7 +215,8 @@ impl Model {
                 let mut s = String::<U40>::new();
                 write!(s, "{}", a).unwrap();
                 s
-            }).collect();
+            })
+            .collect();
         let v: Vec<&str, U5> = v.iter().map(|s| s.as_str()).collect();
         menu::render("Select alarm:", &v, i as i32, display);
     }

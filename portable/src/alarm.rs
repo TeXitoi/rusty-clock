@@ -1,6 +1,6 @@
+use crate::datetime::{DateTime, DayOfWeek};
 use bitflags::bitflags;
 use core::fmt;
-use crate::datetime::{DateTime, DayOfWeek};
 
 #[derive(Debug, Clone)]
 pub struct AlarmManager {
