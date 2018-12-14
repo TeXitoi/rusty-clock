@@ -156,7 +156,7 @@ impl Model {
         }
 
         s.clear();
-        write!(s, "{}hPa", Centi(self.env.pressure as i32),).unwrap();
+        write!(s, "{}hPa", Centi(self.env.pressure as i32)).unwrap();
         header.bottom_right(&s);
 
         s.clear();
@@ -225,7 +225,12 @@ impl Model {
 struct Centi(i32);
 impl fmt::Display for Centi {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}.{:02}", self.0 / 100, self.0 % 100)
+        if self.0 < 0 {
+            f.write_str("-")?;
+        }
+        let unit = (self.0 / 100).abs();
+        let frac = (self.0 % 100).abs();
+        write!(f, "{}.{:02}", unit, frac)
     }
 }
 
@@ -245,5 +250,33 @@ impl Default for Environment {
             temperature: 0,
             humidity: 0,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Centi;
+    use std::string::ToString;
+
+    #[test]
+    fn centi() {
+        assert_eq!(Centi(core::i32::MAX).to_string(), "21474836.47");
+
+        assert_eq!(Centi(1000).to_string(), "10.00");
+        assert_eq!(Centi(1001).to_string(), "10.01");
+        assert_eq!(Centi(1099).to_string(), "10.99");
+
+        assert_eq!(Centi(0).to_string(), "0.00");
+        assert_eq!(Centi(1).to_string(), "0.01");
+        assert_eq!(Centi(99).to_string(), "0.99");
+
+        assert_eq!(Centi(-1).to_string(), "-0.01");
+        assert_eq!(Centi(-99).to_string(), "-0.99");
+
+        assert_eq!(Centi(-1000).to_string(), "-10.00");
+        assert_eq!(Centi(-1001).to_string(), "-10.01");
+        assert_eq!(Centi(-1099).to_string(), "-10.99");
+
+        assert_eq!(Centi(core::i32::MIN).to_string(), "-21474836.48");
     }
 }
