@@ -106,7 +106,15 @@ impl EditDateTime {
         }
     }
     pub fn cancel(&mut self) -> Screen {
-        Screen::Clock
+        use self::EditDateTimeState::*;
+        match self.state {
+            Year => return Screen::Menu(MenuElt::SetClock),
+            Month => self.state = Year,
+            Day => self.state = Month,
+            Hour => self.state = Day,
+            Min => self.state = Hour,
+        }
+        Screen::SetClock(self.clone())
     }
     pub fn ok(&mut self) -> Option<datetime::DateTime> {
         use self::EditDateTimeState::*;
@@ -155,7 +163,13 @@ impl ManageAlarm {
         self.state = self.state.prev(&mut self.alarm);
     }
     pub fn cancel(&mut self) -> Screen {
-        Screen::Clock
+        match self.state.cancel() {
+            None => Screen::ManageAlarms(self.id),
+            Some(state) => Screen::ManageAlarm(Self {
+                state,
+                ..self.clone()
+            }),
+        }
     }
     pub fn render(&self, display: &mut DisplayRibbonLeft) {
         self.state.render(&self.alarm, display);
@@ -218,6 +232,15 @@ impl ManageAlarmState {
                 SetMin
             }
             ManageRepeat(state) => ManageRepeat(state.prev()),
+        }
+    }
+    pub fn cancel(&self) -> Option<Self> {
+        use self::ManageAlarmState::*;
+        match self {
+            Main(..) => None,
+            SetHour => Some(Main(ManageAlarmMainState::SetTime)),
+            SetMin => Some(SetHour),
+            ManageRepeat(..) => Some(Main(ManageAlarmMainState::ManageRepeat)),
         }
     }
     pub fn render(&self, alarm: &Alarm, display: &mut DisplayRibbonLeft) {

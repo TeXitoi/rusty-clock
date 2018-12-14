@@ -91,7 +91,7 @@ impl Model {
                     Clock => Clock,
                     Menu(mut state) => state.cancel(),
                     SetClock(mut state) => state.cancel(),
-                    ManageAlarms(_) => Clock,
+                    ManageAlarms(_) => Menu(state::MenuElt::ManageAlarms),
                     ManageAlarm(mut state) => state.cancel(),
                 };
                 if let Clock = self.screen {
