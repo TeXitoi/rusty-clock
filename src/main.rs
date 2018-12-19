@@ -1,21 +1,11 @@
 #![no_main]
 #![no_std]
 
-extern crate bme280;
-extern crate cortex_m;
-extern crate cortex_m_rt as rt;
-extern crate embedded_hal;
-extern crate heapless;
-extern crate il3820;
 #[cfg(not(test))]
 extern crate panic_semihosting;
-extern crate portable;
-extern crate pwm_speaker;
-extern crate stm32f103xx_hal as hal;
-extern crate stm32f103xx_rtc as rtc;
 
-use crate::hal::prelude::*;
-use crate::rt::{exception, ExceptionFrame};
+use cortex_m_rt::{exception, ExceptionFrame};
+use hal::prelude::*;
 use heapless::consts::*;
 use heapless::Vec;
 use portable::datetime::DateTime;
@@ -53,9 +43,9 @@ type EPaperDisplay = il3820::Il3820<
     hal::gpio::gpioa::PA10<hal::gpio::Input<hal::gpio::Floating>>,
 >;
 
-#[app(device = crate::hal::device)]
+#[app(device = hal::device)]
 const APP: () = {
-    static mut RTC_DEV: rtc::Rtc = ();
+    static mut RTC_DEV: stm32f103xx_rtc::Rtc = ();
     static mut BME280: bme280::BME280<I2C, hal::delay::Delay> = ();
     static mut ALARM_MANAGER: alarm::AlarmManager = ();
     static mut SOUND: sound::Sound = ();
@@ -98,7 +88,7 @@ const APP: () = {
         let mut timer = hal::timer::Timer::tim3(device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
         timer.listen(hal::timer::Event::Update);
 
-        let mut rtc = rtc::Rtc::new(device.RTC, &mut rcc.apb1, &mut device.PWR);
+        let mut rtc = stm32f103xx_rtc::Rtc::new(device.RTC, &mut rcc.apb1, &mut device.PWR);
         if rtc.get_cnt() < 100 {
             let today = DateTime {
                 year: 2018,
