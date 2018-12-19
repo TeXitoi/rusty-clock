@@ -65,4 +65,4 @@ Plug the micro USB connector of the blue pill board to a USB power supply (or a 
 
 ## Compiling and flashing
 
-For compiling and flashing, please refer to [the blue pill quickstart](https://github.com/TeXitoi/blue-pill-quickstart/blob/master/README.md). Note that a nightly toolchain is required.
+For compiling and flashing, please refer to [the blue pill quickstart](https://github.com/TeXitoi/blue-pill-quickstart/blob/master/README.md).
