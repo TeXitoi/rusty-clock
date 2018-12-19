@@ -4,49 +4,46 @@
 #[cfg(not(test))]
 extern crate panic_semihosting;
 
-use cortex_m_rt::{exception, ExceptionFrame};
-use hal::prelude::*;
-use heapless::consts::*;
-use heapless::Vec;
 use portable::datetime::DateTime;
 use portable::{alarm, button, datetime, ui};
 use pwm_speaker::songs::SO_WHAT;
 use rtfm::app;
+use stm32f103xx_hal::prelude::*;
+use stm32f103xx_hal::{delay, device, gpio, i2c, spi, timer};
 
-mod msg_queue;
 mod sound;
 
-type I2C = hal::i2c::BlockingI2c<
-    hal::device::I2C1,
+type I2C = i2c::BlockingI2c<
+    device::I2C1,
     (
-        hal::gpio::gpiob::PB6<hal::gpio::Alternate<hal::gpio::OpenDrain>>,
-        hal::gpio::gpiob::PB7<hal::gpio::Alternate<hal::gpio::OpenDrain>>,
+        gpio::gpiob::PB6<gpio::Alternate<gpio::OpenDrain>>,
+        gpio::gpiob::PB7<gpio::Alternate<gpio::OpenDrain>>,
     ),
 >;
-type Button0Pin = hal::gpio::gpioa::PA6<hal::gpio::Input<hal::gpio::PullUp>>;
-type Button1Pin = hal::gpio::gpioa::PA7<hal::gpio::Input<hal::gpio::PullUp>>;
-type Button2Pin = hal::gpio::gpiob::PB0<hal::gpio::Input<hal::gpio::PullUp>>;
-type Button3Pin = hal::gpio::gpiob::PB1<hal::gpio::Input<hal::gpio::PullUp>>;
-type Spi = hal::spi::Spi<
-    hal::device::SPI2,
+type Button0Pin = gpio::gpioa::PA6<gpio::Input<gpio::PullUp>>;
+type Button1Pin = gpio::gpioa::PA7<gpio::Input<gpio::PullUp>>;
+type Button2Pin = gpio::gpiob::PB0<gpio::Input<gpio::PullUp>>;
+type Button3Pin = gpio::gpiob::PB1<gpio::Input<gpio::PullUp>>;
+type Spi = spi::Spi<
+    device::SPI2,
     (
-        hal::gpio::gpiob::PB13<hal::gpio::Alternate<hal::gpio::PushPull>>,
-        hal::gpio::gpiob::PB14<hal::gpio::Input<hal::gpio::Floating>>,
-        hal::gpio::gpiob::PB15<hal::gpio::Alternate<hal::gpio::PushPull>>,
+        gpio::gpiob::PB13<gpio::Alternate<gpio::PushPull>>,
+        gpio::gpiob::PB14<gpio::Input<gpio::Floating>>,
+        gpio::gpiob::PB15<gpio::Alternate<gpio::PushPull>>,
     ),
 >;
 type EPaperDisplay = il3820::Il3820<
     Spi,
-    hal::gpio::gpiob::PB12<hal::gpio::Output<hal::gpio::PushPull>>,
-    hal::gpio::gpioa::PA8<hal::gpio::Output<hal::gpio::PushPull>>,
-    hal::gpio::gpioa::PA9<hal::gpio::Output<hal::gpio::PushPull>>,
-    hal::gpio::gpioa::PA10<hal::gpio::Input<hal::gpio::Floating>>,
+    gpio::gpiob::PB12<gpio::Output<gpio::PushPull>>,
+    gpio::gpioa::PA8<gpio::Output<gpio::PushPull>>,
+    gpio::gpioa::PA9<gpio::Output<gpio::PushPull>>,
+    gpio::gpioa::PA10<gpio::Input<gpio::Floating>>,
 >;
 
-#[app(device = hal::device)]
+#[app(device = stm32f103xx_hal::device)]
 const APP: () = {
     static mut RTC_DEV: stm32f103xx_rtc::Rtc = ();
-    static mut BME280: bme280::BME280<I2C, hal::delay::Delay> = ();
+    static mut BME280: bme280::BME280<I2C, delay::Delay> = ();
     static mut ALARM_MANAGER: alarm::AlarmManager = ();
     static mut SOUND: sound::Sound = ();
     static mut BUTTON0: button::Button<Button0Pin> = ();
@@ -56,10 +53,9 @@ const APP: () = {
     static mut DISPLAY: EPaperDisplay = ();
     static mut SPI: Spi = ();
     static mut UI: ui::Model = ();
-    static mut FULL_UPDATE: bool = ();
-    static mut MSG_QUEUE: msg_queue::MsgQueue = ();
+    static mut FULL_UPDATE: bool = false;
 
-    #[init]
+    #[init(spawn = [msg])]
     fn init() {
         let mut flash = device.FLASH.constrain();
         let mut rcc = device.RCC.constrain();
@@ -85,8 +81,8 @@ const APP: () = {
         let button2_pin = gpiob.pb0.into_pull_up_input(&mut gpiob.crl);
         let button3_pin = gpiob.pb1.into_pull_up_input(&mut gpiob.crl);
 
-        let mut timer = hal::timer::Timer::tim3(device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
-        timer.listen(hal::timer::Event::Update);
+        let mut timer = timer::Timer::tim3(device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
+        timer.listen(timer::Event::Update);
 
         let mut rtc = stm32f103xx_rtc::Rtc::new(device.RTC, &mut rcc.apb1, &mut device.PWR);
         if rtc.get_cnt() < 100 {
@@ -119,12 +115,12 @@ const APP: () = {
         alarm_manager.alarms[4].set_min(37);
         alarm_manager.alarms[4].mode = Mode::all() - Mode::ONE_TIME;
 
-        let mut delay = hal::delay::Delay::new(core.SYST, clocks);
+        let mut delay = delay::Delay::new(core.SYST, clocks);
 
         let sck = gpiob.pb13.into_alternate_push_pull(&mut gpiob.crh);
         let miso = gpiob.pb14;
         let mosi = gpiob.pb15.into_alternate_push_pull(&mut gpiob.crh);
-        let mut spi = hal::spi::Spi::spi2(
+        let mut spi = spi::Spi::spi2(
             device.SPI2,
             (sck, miso, mosi),
             il3820::MODE,
@@ -146,23 +142,24 @@ const APP: () = {
         core.DWT.enable_cycle_counter();
         let pb6 = gpiob.pb6.into_alternate_open_drain(&mut gpiob.crl);
         let pb7 = gpiob.pb7.into_alternate_open_drain(&mut gpiob.crl);
-        let i2c = hal::i2c::I2c::i2c1(
+        let i2c = i2c::I2c::i2c1(
             device.I2C1,
             (pb6, pb7),
             &mut afio.mapr,
-            hal::i2c::Mode::Fast {
+            i2c::Mode::Fast {
                 frequency: 400_000,
-                duty_cycle: hal::i2c::DutyCycle::Ratio2to1,
+                duty_cycle: i2c::DutyCycle::Ratio2to1,
             },
             clocks,
             &mut rcc.apb1,
         );
-        let i2c = hal::i2c::blocking_i2c(i2c, clocks, 100, 100, 100, 100);
+        let i2c = i2c::blocking_i2c(i2c, clocks, 100, 100, 100, 100);
         let mut bme280 = bme280::BME280::new_primary(i2c, delay);
         bme280.init().unwrap();
 
-        let mut msg_queue = msg_queue::MsgQueue::new();
-        msg_queue.push(ui::Msg::AlarmManager(alarm_manager.clone()));
+        spawn
+            .msg(ui::Msg::AlarmManager(alarm_manager.clone()))
+            .unwrap();
 
         RTC_DEV = rtc;
         BME280 = bme280;
@@ -174,36 +171,32 @@ const APP: () = {
         DISPLAY = il3820;
         SPI = spi;
         UI = ui::Model::init();
-        FULL_UPDATE = false;
-        MSG_QUEUE = msg_queue;
         ALARM_MANAGER = alarm_manager;
     }
 
-    #[interrupt(priority = 4, resources = [BUTTON0, BUTTON1, BUTTON2, BUTTON3, SOUND, MSG_QUEUE])]
+    #[interrupt(priority = 4, spawn = [msg], resources = [BUTTON0, BUTTON1, BUTTON2, BUTTON3, SOUND])]
     fn TIM3() {
-        unsafe {
-            (*hal::device::TIM3::ptr())
-                .sr
-                .modify(|_, w| w.uif().clear_bit());
-        };
+        unsafe { &*device::TIM3::ptr() }
+            .sr
+            .modify(|_, w| w.uif().clear_bit());
 
         if let button::Event::Pressed = resources.BUTTON0.poll() {
             resources.SOUND.stop();
-            resources.MSG_QUEUE.push(ui::Msg::ButtonCancel);
+            spawn.msg(ui::Msg::ButtonCancel).unwrap();
         }
         if let button::Event::Pressed = resources.BUTTON1.poll() {
-            resources.MSG_QUEUE.push(ui::Msg::ButtonMinus);
+            spawn.msg(ui::Msg::ButtonMinus).unwrap();
         }
         if let button::Event::Pressed = resources.BUTTON2.poll() {
-            resources.MSG_QUEUE.push(ui::Msg::ButtonPlus);
+            spawn.msg(ui::Msg::ButtonPlus).unwrap();
         }
         if let button::Event::Pressed = resources.BUTTON3.poll() {
-            resources.MSG_QUEUE.push(ui::Msg::ButtonOk);
+            spawn.msg(ui::Msg::ButtonOk).unwrap();
         }
         resources.SOUND.poll();
     }
 
-    #[interrupt(priority = 3, resources = [RTC_DEV, BME280, ALARM_MANAGER, SOUND, MSG_QUEUE])]
+    #[interrupt(priority = 3, spawn = [msg], resources = [RTC_DEV, BME280, ALARM_MANAGER, SOUND])]
     fn RTC() {
         resources.RTC_DEV.clear_second_interrupt();
         resources.RTC_DEV.sync();
@@ -212,13 +205,9 @@ const APP: () = {
         if datetime.sec == 0 && resources.ALARM_MANAGER.must_ring(&datetime) {
             resources.SOUND.lock(|alarm| alarm.play(&SO_WHAT, 10 * 60));
             let manager = resources.ALARM_MANAGER.clone();
-            resources
-                .MSG_QUEUE
-                .lock(|q| q.push(ui::Msg::AlarmManager(manager)));
+            spawn.msg(ui::Msg::AlarmManager(manager)).unwrap();
         }
-        resources
-            .MSG_QUEUE
-            .lock(|q| q.push(ui::Msg::DateTime(datetime)));
+        spawn.msg(ui::Msg::DateTime(datetime)).unwrap();
 
         let measurements = if let Ok(measurements) = resources.BME280.measure() {
             crate::ui::Environment {
@@ -233,47 +222,33 @@ const APP: () = {
                 humidity: 0,
             }
         };
-        resources
-            .MSG_QUEUE
-            .lock(|q| q.push(ui::Msg::Environment(measurements)));
+        spawn.msg(ui::Msg::Environment(measurements)).unwrap();
     }
 
-    #[interrupt(priority = 2, resources = [UI, MSG_QUEUE, RTC_DEV, FULL_UPDATE, ALARM_MANAGER])]
-    fn EXTI2() {
-        loop {
-            let msgs = resources.MSG_QUEUE.lock(|q| q.get());
-            if msgs.is_empty() {
-                break;
-            }
-            let cmds: Vec<_, U16> = msgs
-                .into_iter()
-                .flat_map(|msg| resources.UI.update(msg))
-                .collect();
-            for cmd in cmds {
-                use crate::ui::Cmd::*;
-                match cmd {
-                    UpdateRtc(dt) => {
-                        if let Some(epoch) = dt.to_epoch() {
-                            resources.RTC_DEV.lock(|rtc| {
-                                let _ = rtc.set_cnt(epoch);
-                            });
-                            resources.MSG_QUEUE.lock(|q| q.push(ui::Msg::DateTime(dt)));
-                        }
-                    }
-                    UpdateAlarm(alarm, i) => {
-                        let manager = resources.ALARM_MANAGER.lock(|m| {
-                            m.alarms[i] = alarm;
-                            m.clone()
+    #[task(priority = 2, capacity = 16, spawn = [msg], resources = [UI, RTC_DEV, FULL_UPDATE, ALARM_MANAGER])]
+    fn msg(msg: ui::Msg) {
+        use crate::ui::Cmd::*;
+        for cmd in resources.UI.update(msg) {
+            match cmd {
+                UpdateRtc(dt) => {
+                    if let Some(epoch) = dt.to_epoch() {
+                        resources.RTC_DEV.lock(|rtc| {
+                            let _ = rtc.set_cnt(epoch);
                         });
-                        resources
-                            .MSG_QUEUE
-                            .lock(|q| q.push(ui::Msg::AlarmManager(manager)));
+                        spawn.msg(ui::Msg::DateTime(dt)).unwrap();
                     }
-                    FullUpdate => *resources.FULL_UPDATE = true,
                 }
+                UpdateAlarm(alarm, i) => {
+                    let manager = resources.ALARM_MANAGER.lock(|m| {
+                        m.alarms[i] = alarm;
+                        m.clone()
+                    });
+                    spawn.msg(ui::Msg::AlarmManager(manager)).unwrap();
+                }
+                FullUpdate => *resources.FULL_UPDATE = true,
             }
         }
-        rtfm::pend(hal::device::Interrupt::EXTI1);
+        rtfm::pend(device::Interrupt::EXTI1);
     }
 
     #[interrupt(priority = 1, resources = [UI, DISPLAY, SPI, FULL_UPDATE])]
@@ -281,11 +256,9 @@ const APP: () = {
         while resources.DISPLAY.is_busy() {}
         let model = resources.UI.lock(|model| model.clone());
         let display = model.view();
-        let full_update = resources.FULL_UPDATE.lock(|fu| {
-            let full_update = *fu;
-            *fu = false;
-            full_update
-        });
+        let full_update = resources
+            .FULL_UPDATE
+            .lock(|fu| core::mem::replace(&mut *fu, false));
         if full_update {
             resources.DISPLAY.set_full();
         }
@@ -296,14 +269,9 @@ const APP: () = {
         resources.DISPLAY.update(&mut *resources.SPI).unwrap();
         resources.DISPLAY.set_partial();
     }
+
+    // Interrupt handlers used to dispatch software tasks
+    extern "C" {
+        fn EXTI2();
+    }
 };
-
-#[exception]
-fn HardFault(ef: &ExceptionFrame) -> ! {
-    panic!("{:#?}", ef);
-}
-
-#[exception]
-fn DefaultHandler(irqn: i16) {
-    panic!("Unhandled exception (IRQn = {})", irqn);
-}

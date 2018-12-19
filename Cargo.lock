@@ -257,7 +257,6 @@ dependencies = [
  "cortex-m-rt 0.6.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rtfm 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-hal 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "heapless 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "il3820 0.1.0 (git+https://github.com/TeXitoi/il3820)",
  "panic-semihosting 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "portable 0.1.0",

@@ -7,7 +7,7 @@ edition = "2018"
 [workspace]
 
 [dependencies]
-hal = { git = "https://github.com/japaric/stm32f103xx-hal", branch = "master", package = "stm32f103xx-hal" }
+stm32f103xx-hal = { git = "https://github.com/japaric/stm32f103xx-hal", branch = "master" }
 stm32f103xx = { version = "0.11.0", features = ["rt"] }
 cortex-m = "0.5"
 cortex-m-rt = { version = "0.6", features = ["device"] }
@@ -15,7 +15,6 @@ cortex-m-rtfm = "0.4.0"
 panic-semihosting = "0.5"
 bme280 = "0.1.1"
 stm32f103xx-rtc = { git = "https://github.com/TeXitoi/stm32f103xx-rtc", branch = "ed2018" }
-heapless = "0.4"
 pwm-speaker = { git = "https://github.com/TeXitoi/pwm-speaker", branch = "ed2018" }
 il3820 = { git = "https://github.com/TeXitoi/il3820" }
 embedded-hal = "0.2.1"
