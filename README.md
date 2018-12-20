@@ -66,3 +66,15 @@ Plug the micro USB connector of the blue pill board to a USB power supply (or a 
 ## Compiling and flashing
 
 For compiling and flashing, please refer to [the blue pill quickstart](https://github.com/TeXitoi/blue-pill-quickstart/blob/master/README.md).
+
+Basically:
+
+```shell
+curl https://sh.rustup.rs -sSf | sh
+rustup target add thumbv7m-none-eabi
+sudo apt-get install gdb-arm-none-eabi openocd
+cd rusty-clock
+# connect ST-Link v2 to the blue pill
+# ./openocd.sh in another terminal
+cargo run --release
+```
