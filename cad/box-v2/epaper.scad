@@ -1,4 +1,4 @@
-//$fs=1;
+use <utils.scad>
 
 module epaper(support_thickness=2) {
   width=89.5;
@@ -18,9 +18,7 @@ module epaper(support_thickness=2) {
       color([0, 0, 0.6])
         translate([0, 0, -thickness])
         linear_extrude(thickness)
-        offset(corner_radius)
-        offset(-corner_radius)
-        square([width, height], center=true);
+        rounded_square([width, height], center=true, r=corner_radius);
 
       // holes
       for (offset = hole_offsets)
