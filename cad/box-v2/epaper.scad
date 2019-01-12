@@ -1,18 +1,21 @@
 use <utils.scad>
 
+width=89.5;
+height=38;
+hole_offset=2.5;
+hole_x_offset = width / 2 - hole_offset;
+hole_y_offset = height / 2 - hole_offset;
+hole_offsets = [ for (x=[hole_x_offset,-hole_x_offset]) for (y=[hole_y_offset,-hole_y_offset]) [x, y, 0] ];
+display_offset=-5.5/2;
+display_size=[67, 29];
+
 module epaper(support_thickness=2) {
-  width=89.5;
-  height=38;
   corner_radius=1.5;
   thickness=1.6;
 
-  hole_offset=2.5;
   hole_diameter=3;
-  hole_x_offset = width / 2 - hole_offset;
-  hole_y_offset = height / 2 - hole_offset;
-  hole_offsets = [ for (x=[hole_x_offset,-hole_x_offset]) for (y=[hole_y_offset,-hole_y_offset]) [x, y, 0] ];
 
-  translate([-5.5/2, 0, -1]) {
+  translate([display_offset, 0, -1]) {
     difference() {
       // PCB
       color([0, 0, 0.6])
@@ -62,7 +65,32 @@ module epaper(support_thickness=2) {
   }
 
   // display area
-  color([1, 1, 1]) cube([67, 29, 0.01], center=true);
+  color([1, 1, 1]) cube([display_size.x, display_size.y, 0.01], center=true);
+}
+
+module epaper_pocket() {
+  translate([display_offset, 0, -1]) {
+    // holes
+    for (offset = hole_offsets)
+      translate(offset)
+        cylinder(r=1.8, h=20, center=true);
+
+    // pcb
+    translate([0,0,-5])
+      cube([width+1, height+1, 10], center=true);
+
+    // glass
+    cube([width-2*(hole_offset+2), height+1, 2], center=true);
+
+    // display ribbon
+    translate([-(width+1)/2, -10, 0])
+      cube([20, 20, 1]);
+  }
+
+  // display_pocket
+  chamfered_pocket([for (x=display_size) x+1], 3);
+  cube([display_size.x+1, display_size.y+1, 1], center=true);
 }
 
 epaper();
+epaper_pocket();

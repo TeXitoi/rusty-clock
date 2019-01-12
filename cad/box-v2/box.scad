@@ -1,4 +1,5 @@
 use <utils.scad>
+use <epaper.scad>
 include <params.scad>
 
 module box() {
@@ -21,6 +22,10 @@ module box() {
           rotate([90, 0, 0])
           cylinder(d=16.2, h=3*thickness, center=true);
       }
+
+      // epaper pocket
+      epaper_placement()
+        epaper_pocket();
     }
   }
 }

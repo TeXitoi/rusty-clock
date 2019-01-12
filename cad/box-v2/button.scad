@@ -1,4 +1,4 @@
-module button() {
+module button(thickness=1) {
   color([0.7, 0.7, 0.7]) {
      // cap
     cylinder(d=17.7, h=0.4);
@@ -8,7 +8,7 @@ module button() {
     translate([0, 0, -12]) cylinder(d=15.7, h=12); // thread
 
     // bolt
-    translate([0, 0, -2 - 2.6/2]) {
+    translate([0, 0, -thickness - 2.6/2]) {
       intersection() {
         cylinder(d=21.2, h=2.6, $fn=6, center=true);
         resize([22, 22, 4.5]) sphere(d=24);
