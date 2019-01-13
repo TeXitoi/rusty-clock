@@ -2,9 +2,7 @@ use <box.scad>
 use <button.scad>
 use <epaper.scad>
 include <params.scad>
-
-$fs=0.5;
-$fa=1;
+include <printing.scad>
 
 box();
 
