@@ -27,6 +27,16 @@ module box() {
       epaper_placement()
         epaper_pocket();
     }
+
+    // backpanel pilones
+    pilone_height=box_depth-thickness-backpanel_insertion_size;
+    for (i=[-1, 1])
+      for (j=[-1, 1]) {
+        translate([i * (box_width/2-thickness-backpanel_pilone_size/2),
+                   j * (box_height/2-thickness-backpanel_pilone_size/2),
+                   pilone_height/2])
+          cube([backpanel_pilone_size, backpanel_pilone_size, pilone_height], center=true);
+      }
   }
 }
 
