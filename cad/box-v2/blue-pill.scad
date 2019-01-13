@@ -6,8 +6,8 @@ module pin() {
     cube([pin, pin, pin], center=true);
 
   // pin
-  color([0.7, 0.7, 0.7]) translate([0, 0, 11/2 - pin])
-    cube([0.5, 0.5, 11], center=true);  
+  color([0.7, 0.7, 0.7]) translate([0, 0, pin])
+    cube([pin/5, pin/5, pin*4], center=true);
 }
 
 module blue_pill() {
