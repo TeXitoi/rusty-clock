@@ -1,4 +1,5 @@
 use <utils.scad>
+use <screws.scad>
 
 module speaker_holes() {
   for (r=[45:90:360])
@@ -7,7 +8,7 @@ module speaker_holes() {
       children();
 }
 
-module speaker() {
+module speaker(support_thickness=2) {
   difference() {
     union() {
       translate([0, 0, -0.3])
@@ -41,6 +42,12 @@ module speaker() {
   color([0.2, 0.2, 0.2]) difference() {
     cylinder(d=50, h=3, center=true);
     cylinder(d=47, h=4, center=true);
+  }
+
+  speaker_holes() {
+    translate([0, 0, support_thickness]) m3_screw();
+    translate([0, 0, -0.3]) m3_washer();
+    translate([0, 0, -0.3-0.5]) m3_bolt();
   }
 }
 

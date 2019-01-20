@@ -1,4 +1,5 @@
 use <utils.scad>
+use <screws.scad>
 
 width=89.5;
 height=38;
@@ -51,16 +52,8 @@ module epaper(support_thickness=2) {
 
     for (offset = hole_offsets)
       translate(offset) {
-        // screws
-        color([0.7,0.7,0.7]) {
-          translate([0, 0, support_thickness])
-            cylinder(d=5, h=1.3);
-          translate([0, 0, support_thickness - 6])
-            cylinder(d=2.7, h=6);
-        }
-
-        // bolts
-        color("gold") translate([0, 0, -5.7-thickness]) cylinder(d=5, h=5.7, $fn=6);
+        translate([0, 0, support_thickness]) m3_screw();
+        color("gold") translate([0, 0, -thickness]) m3_bolt(h=5.7);
       }
   }
 
@@ -93,4 +86,4 @@ module epaper_pocket() {
 }
 
 epaper();
-epaper_pocket();
+//epaper_pocket();
