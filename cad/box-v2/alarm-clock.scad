@@ -1,13 +1,16 @@
 use <box.scad>
 use <button.scad>
 use <epaper.scad>
+use <speaker.scad>
 use <blue-pill.scad>
 include <params.scad>
-include <printing.scad>
+//include <printing.scad>
 
 box();
 
 epaper_placement() epaper();
+
+speaker_placement() speaker();
 
 for (coord = button_coords)
   translate(coord)

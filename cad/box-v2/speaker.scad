@@ -52,7 +52,7 @@ module speaker(support_thickness=2) {
 }
 
 module speaker_pocket() {
-  translate([0, 0, -60/2]) cube([54, 54, 60], center=true);
+  translate([0, 0, -30/2]) cube([54, 54, 30], center=true);
   cylinder(d=51, h=20, center=true);
   speaker_holes() cylinder(d=3.5, h=20, center=true);
 }

@@ -1,5 +1,6 @@
 use <utils.scad>
 use <epaper.scad>
+use <speaker.scad>
 include <params.scad>
 
 module box() {
@@ -72,6 +73,8 @@ module box() {
                  (thickness+2+2)/2-1])
         cube([11, 3, thickness + 2 + 2], center=true);
 
+      // speaker_pocket
+      speaker_placement() speaker_pocket();
     }
   }
 }
