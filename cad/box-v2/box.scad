@@ -32,20 +32,20 @@ module box() {
 
         // bluepill support
         for (i=[0, bluepill_height - thickness]) {
-          translate([-box_width/2+thickness+backpanel_pilone_size + i,
+          translate([box_width/2-2*thickness-backpanel_pilone_size - i,
                      -box_height/2+backpanel_pilone_size,
                      0])
             cube([thickness, thickness, pilone_height]);
-          translate([-box_width/2+thickness+backpanel_pilone_size + i,
+          translate([box_width/2-2*thickness-backpanel_pilone_size - i,
                      -box_height/2+thickness,
                      0])
             cube([thickness, backpanel_pilone_size-2*thickness, pilone_height]);
         }
-        translate([-box_width/2+thickness+backpanel_pilone_size + bluepill_height,
+        translate([box_width/2-2*thickness-backpanel_pilone_size - bluepill_height,
                    -box_height/2+thickness,
                    0])
           cube([thickness, backpanel_pilone_size, pilone_height]);
-        translate([-box_width/2+thickness+backpanel_pilone_size,
+        translate([box_width/2-bluepill_height-thickness-backpanel_pilone_size,
                    -box_height/2+thickness,
                    0])
           cube([bluepill_height, backpanel_pilone_size, thickness + 2]);
@@ -65,7 +65,7 @@ module box() {
           cylinder(d=1.8, h=10);
 
       // debugger pocket
-      translate([-box_width/2+thickness+backpanel_pilone_size+bluepill_height/2,
+      translate([box_width/2-thickness-backpanel_pilone_size-bluepill_height/2,
                  -box_height/2-thickness+backpanel_pilone_size+1.6+2.54/2,
                  (thickness+2+2)/2-1])
         cube([11, 3, thickness + 2 + 2], center=true);

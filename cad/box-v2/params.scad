@@ -34,5 +34,5 @@ module epaper_placement() {
 module speaker_placement() {
   screen=39+thickness;
   speaker_height=-box_height/2+(box_height-screen)/2;
-  translate([24, speaker_height, thickness]) rotate([0,180,0]) children();
+  translate([-24, speaker_height, thickness]) rotate([0,180,0]) children();
 }

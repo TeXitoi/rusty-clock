@@ -14,7 +14,7 @@ speaker_placement() speaker();
 
 button_placement() button(thickness);
 
-translate([-box_width/2+thickness+backpanel_pilone_size + 23/2,
+translate([box_width/2-thickness-backpanel_pilone_size - 23/2,
            -box_height/2+backpanel_pilone_size - 0.5 * thickness,
            thickness + 53/2 + 2])
 rotate([-90, 90, 0])

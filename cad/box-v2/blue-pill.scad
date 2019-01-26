@@ -1,4 +1,4 @@
-module pin() {
+module pin(with_dupond=false) {
   pin = 2.54;
 
   // plastic cube
@@ -8,6 +8,14 @@ module pin() {
   // pin
   color([0.7, 0.7, 0.7]) translate([0, 0, pin])
     cube([pin/5, pin/5, pin*4], center=true);
+
+  // dupond
+  if (with_dupond) {
+    color([0.2, 0.2, 0.2]) translate([0, 0, 3.6*pin])
+      cube([pin, pin, 5*pin], center=true);
+    color([0.4, 0, 0.4]) translate([0, 0, 6*pin])
+      cylinder(d=1, h=10);
+  }
 }
 
 module blue_pill() {
@@ -43,7 +51,7 @@ module blue_pill() {
   for (i = [-1.5:1.5])
     translate([width / 2 - 4.7, i * pin, depth/2 + pin/2])
       rotate([0,90,0])
-        pin();
+        pin(with_dupond=true);
 
   // boot pins
   for (i=[0.5:1.5])
@@ -54,7 +62,7 @@ module blue_pill() {
   // screen pins
   for (i=[0,1,2,3,4,5,6,18,19])
     translate([(-19/2 + i)*pin, -3*pin, depth/2])
-      pin();
+      pin(with_dupond=true);
 }
 
 blue_pill();
