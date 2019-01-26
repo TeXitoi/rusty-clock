@@ -52,11 +52,8 @@ module box() {
       }
 
       // button holes
-      for (coord=button_coords) {
-        translate(coord)
-          rotate([90, 0, 0])
-          cylinder(d=16.2, h=3*thickness, center=true);
-      }
+      button_placement()
+        cylinder(d=16.2, h=3*thickness, center=true);
 
       // epaper pocket
       epaper_placement()
