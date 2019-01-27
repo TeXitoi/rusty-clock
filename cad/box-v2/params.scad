@@ -28,8 +28,9 @@ module button_placement() {
 }
 
 module epaper_placement() {
-  epaper_height=box_height/2-thickness-39/2-2;
-  translate([box_width/2-thickness-90.5/2-5.5/2,epaper_height,1]) rotate([0,180,0]) children();
+  x_placement=box_width/2-thickness-90.5/2-5.5/2-2;
+  y_placement=box_height/2-thickness-39/2-2;
+  translate([x_placement, y_placement, 1]) rotate([0,180,0]) children();
 }
 
 module speaker_placement() {

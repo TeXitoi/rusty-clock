@@ -69,8 +69,14 @@ module epaper_pocket() {
         cylinder(r=1.8, h=20, center=true);
 
     // pcb
-    translate([0,0,-5])
-      cube([width+1, height+1, 10], center=true);
+    difference() {
+      translate([0,0,-10]) cube([width+1, height+1, 20], center=true);
+      for (pos=[[1,1,45], [-1,1,45+90], [-1,-1,45+180], [1,-1,45+270]]) {
+        translate([pos.x*(width+1)/2, pos.y*(height+1)/2, -20])
+          rotate([0, 45, pos[2]])
+            cube([10*sqrt(2),40,10*sqrt(2)], center=true);
+      }
+    }
 
     // glass
     cube([width-2*(hole_offset+2), height+1, 2], center=true);
@@ -86,4 +92,4 @@ module epaper_pocket() {
 }
 
 epaper();
-//epaper_pocket();
+#epaper_pocket();
