@@ -1,6 +1,7 @@
 use <utils.scad>
 use <epaper.scad>
 use <speaker.scad>
+use <battery.scad>
 include <params.scad>
 
 module box() {
@@ -41,7 +42,8 @@ module box() {
                      0])
             cube([thickness, backpanel_pilone_size-2*thickness, pilone_height]);
         }
-        translate([box_width/2-2*thickness-backpanel_pilone_size - bluepill_height,
+        bp_external_support_x=box_width/2-2*thickness-backpanel_pilone_size-bluepill_height;
+        translate([bp_external_support_x,
                    -box_height/2+thickness,
                    0])
           cube([thickness, backpanel_pilone_size, pilone_height]);
@@ -49,7 +51,29 @@ module box() {
                    -box_height/2+thickness,
                    0])
           cube([bluepill_height, backpanel_pilone_size, thickness + 2]);
-      }
+
+        // aaa-baterry holder
+        for (i=[-0.5:-1:-2.5]) {
+          translate([i*(10.5+thickness)+bp_external_support_x+0.5*thickness, -box_height/2, 0])
+            rotate([-90, -90, 0])
+            aaa_holder();
+        }
+        // coin-baterry holder
+        translate([bp_external_support_x-3*10.5-3*thickness-20.5,
+                   -box_height/2+backpanel_pilone_size,
+                   thickness]){
+          difference() {
+            cube([20.5, thickness, 15]);
+            translate([20/2, -thickness, 13]) cube([0.5, 3*thickness, 0.5]);
+            translate([(20.5-14.5)/2, -thickness, 0]) cube([14.5, 3*thickness, 7]);
+          }
+        }
+        translate([bp_external_support_x-3*10.5-4*thickness-20.5,
+                   -box_height/2+thickness,
+                   thickness]){
+          cube([thickness, backpanel_pilone_size, 15]);
+        }
+      }// end of first element of difference
 
       // button holes
       button_placement()
