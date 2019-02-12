@@ -8,13 +8,13 @@ use portable::datetime::DateTime;
 use portable::{alarm, button, datetime, ui};
 use pwm_speaker::songs::SO_WHAT;
 use rtfm::app;
-use stm32f103xx_hal::prelude::*;
-use stm32f103xx_hal::{delay, device, gpio, i2c, spi, timer};
+use stm32f1xx_hal::prelude::*;
+use stm32f1xx_hal::{delay, gpio, i2c, spi, stm32, timer};
 
 mod sound;
 
 type I2C = i2c::BlockingI2c<
-    device::I2C1,
+    stm32::I2C1,
     (
         gpio::gpiob::PB6<gpio::Alternate<gpio::OpenDrain>>,
         gpio::gpiob::PB7<gpio::Alternate<gpio::OpenDrain>>,
@@ -25,7 +25,7 @@ type Button1Pin = gpio::gpioa::PA7<gpio::Input<gpio::PullUp>>;
 type Button2Pin = gpio::gpiob::PB0<gpio::Input<gpio::PullUp>>;
 type Button3Pin = gpio::gpiob::PB1<gpio::Input<gpio::PullUp>>;
 type Spi = spi::Spi<
-    device::SPI2,
+    stm32::SPI2,
     (
         gpio::gpiob::PB13<gpio::Alternate<gpio::PushPull>>,
         gpio::gpiob::PB14<gpio::Input<gpio::Floating>>,
@@ -40,7 +40,7 @@ type EPaperDisplay = il3820::Il3820<
     gpio::gpioa::PA10<gpio::Input<gpio::Floating>>,
 >;
 
-#[app(device = stm32f103xx_hal::device)]
+#[app(device = stm32f1xx_hal::stm32)]
 const APP: () = {
     static mut RTC_DEV: stm32f103xx_rtc::Rtc = ();
     static mut BME280: bme280::BME280<I2C, delay::Delay> = ();
@@ -56,7 +56,7 @@ const APP: () = {
     static mut FULL_UPDATE: bool = false;
 
     #[init(spawn = [msg])]
-    fn init() {
+    fn init() -> init::LateResources {
         let mut flash = device.FLASH.constrain();
         let mut rcc = device.RCC.constrain();
         let mut afio = device.AFIO.constrain(&mut rcc.apb2);
@@ -161,22 +161,24 @@ const APP: () = {
             .msg(ui::Msg::AlarmManager(alarm_manager.clone()))
             .unwrap();
 
-        RTC_DEV = rtc;
-        BME280 = bme280;
-        SOUND = sound::Sound::new(speaker);
-        BUTTON0 = button::Button::new(button0_pin);
-        BUTTON1 = button::Button::new(button1_pin);
-        BUTTON2 = button::Button::new(button2_pin);
-        BUTTON3 = button::Button::new(button3_pin);
-        DISPLAY = il3820;
-        SPI = spi;
-        UI = ui::Model::init();
-        ALARM_MANAGER = alarm_manager;
+        init::LateResources {
+            RTC_DEV: rtc,
+            BME280: bme280,
+            SOUND: sound::Sound::new(speaker),
+            BUTTON0: button::Button::new(button0_pin),
+            BUTTON1: button::Button::new(button1_pin),
+            BUTTON2: button::Button::new(button2_pin),
+            BUTTON3: button::Button::new(button3_pin),
+            DISPLAY: il3820,
+            SPI: spi,
+            UI: ui::Model::init(),
+            ALARM_MANAGER: alarm_manager,
+        }
     }
 
     #[interrupt(priority = 4, spawn = [msg], resources = [BUTTON0, BUTTON1, BUTTON2, BUTTON3, SOUND])]
     fn TIM3() {
-        unsafe { &*device::TIM3::ptr() }
+        unsafe { &*stm32::TIM3::ptr() }
             .sr
             .modify(|_, w| w.uif().clear_bit());
 
@@ -248,7 +250,7 @@ const APP: () = {
                 FullUpdate => *resources.FULL_UPDATE = true,
             }
         }
-        rtfm::pend(device::Interrupt::EXTI1);
+        rtfm::pend(stm32::Interrupt::EXTI1);
     }
 
     #[interrupt(priority = 1, resources = [UI, DISPLAY, SPI, FULL_UPDATE])]
