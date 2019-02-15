@@ -16,6 +16,7 @@ mod state;
 pub enum Msg {
     DateTime(datetime::DateTime),
     Environment(Environment),
+    FailEnvironment,
     ButtonCancel,
     ButtonMinus,
     ButtonPlus,
@@ -44,6 +45,7 @@ pub struct Model {
     now: datetime::DateTime,
     last_input: u32,
     env: Environment,
+    nb_fail_environment: u32,
     alarm_manager: AlarmManager,
     screen: state::Screen,
 }
@@ -54,6 +56,7 @@ impl Model {
             now: datetime::DateTime::new(0),
             last_input: 0,
             env: Default::default(),
+            nb_fail_environment: 0,
             alarm_manager: AlarmManager::default(),
             screen: state::Screen::Clock,
         }
@@ -81,7 +84,11 @@ impl Model {
                     cmds.push(Cmd::FullUpdate).unwrap();
                 }
             }
-            Msg::Environment(measurements) => self.env = measurements,
+            Msg::Environment(measurements) => {
+                self.env = measurements;
+                self.nb_fail_environment = 0;
+            }
+            Msg::FailEnvironment => self.nb_fail_environment += 1,
             Msg::AlarmManager(am) => self.alarm_manager = am,
             Msg::ButtonOk => {
                 use self::state::{EditDateTime, MenuElt};
@@ -184,6 +191,9 @@ impl Model {
         }
 
         s.clear();
+        if self.nb_fail_environment != 0 {
+            write!(s, "({}s) ", self.nb_fail_environment).unwrap();
+        }
         write!(s, "{}hPa", Centi(self.env.pressure as i32)).unwrap();
         header.bottom_right(&s);
 

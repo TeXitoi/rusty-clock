@@ -211,20 +211,16 @@ const APP: () = {
         }
         spawn.msg(ui::Msg::DateTime(datetime)).unwrap();
 
-        let measurements = if let Ok(measurements) = resources.BME280.measure() {
-            crate::ui::Environment {
+        let msg = if let Ok(measurements) = resources.BME280.measure() {
+            ui::Msg::Environment(crate::ui::Environment {
                 pressure: measurements.pressure as u32,
                 temperature: (measurements.temperature * 100.) as i16,
                 humidity: measurements.humidity as u8,
-            }
+            })
         } else {
-            crate::ui::Environment {
-                pressure: 0,
-                temperature: 0,
-                humidity: 0,
-            }
+            ui::Msg::FailEnvironment
         };
-        spawn.msg(ui::Msg::Environment(measurements)).unwrap();
+        spawn.msg(msg).unwrap();
     }
 
     #[task(priority = 2, capacity = 16, spawn = [msg], resources = [UI, RTC_DEV, FULL_UPDATE, ALARM_MANAGER])]
