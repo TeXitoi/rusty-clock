@@ -4,7 +4,7 @@ monitor arm semihosting enable
 
 # detect unhandled exceptions, hard faults and panics
 break DefaultHandler
-break UserHardFault
+break HardFault
 break rust_begin_unwind
 
 load
