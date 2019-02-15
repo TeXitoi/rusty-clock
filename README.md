@@ -75,6 +75,6 @@ rustup target add thumbv7m-none-eabi
 sudo apt-get install gdb-arm-none-eabi openocd
 cd rusty-clock
 # connect ST-Link v2 to the blue pill and the computer
-# ./openocd.sh in another terminal
+# openocd in another terminal
 cargo run --release
 ```
