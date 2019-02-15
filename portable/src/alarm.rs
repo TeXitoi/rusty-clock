@@ -52,7 +52,7 @@ impl AlarmManager {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Alarm {
     pub is_enable: bool,
     hour: u8,

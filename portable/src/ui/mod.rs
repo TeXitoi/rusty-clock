@@ -22,6 +22,15 @@ pub enum Msg {
     ButtonOk,
     AlarmManager(AlarmManager),
 }
+impl Msg {
+    fn is_button(&self) -> bool {
+        use self::Msg::*;
+        match self {
+            ButtonCancel | ButtonMinus | ButtonPlus | ButtonOk => true,
+            _ => false,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum Cmd {
@@ -33,6 +42,7 @@ pub enum Cmd {
 #[derive(Clone)]
 pub struct Model {
     now: datetime::DateTime,
+    last_input: u32,
     env: Environment,
     alarm_manager: AlarmManager,
     screen: state::Screen,
@@ -42,6 +52,7 @@ impl Model {
     pub fn init() -> Self {
         Self {
             now: datetime::DateTime::new(0),
+            last_input: 0,
             env: Default::default(),
             alarm_manager: AlarmManager::default(),
             screen: state::Screen::Clock,
@@ -51,9 +62,21 @@ impl Model {
         use self::state::Screen::*;
         let mut cmds = Vec::new();
 
+        if msg.is_button() {
+            self.update_last_input();
+        }
+
         match msg {
             Msg::DateTime(dt) => {
                 self.now = dt;
+                if self.screen != state::Screen::Clock
+                    && self
+                        .now
+                        .to_epoch()
+                        .map_or(false, |n| n - self.last_input > 10 * 60)
+                {
+                    self.screen = state::Screen::Clock;
+                }
                 if self.now.hour == 0 && self.now.min == 0 && self.now.sec == 0 {
                     cmds.push(Cmd::FullUpdate).unwrap();
                 }
@@ -133,6 +156,11 @@ impl Model {
         }
 
         display
+    }
+    fn update_last_input(&mut self) {
+        if let Some(epoch) = self.now.to_epoch() {
+            self.last_input = epoch;
+        }
     }
     fn render_header(&self, display: &mut DisplayRibbonLeft) {
         let mut header = header::Header::new(display);

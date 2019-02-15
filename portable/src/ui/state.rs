@@ -15,7 +15,7 @@ macro_rules! manage_str {
     };
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {
     Clock,
     Menu(MenuElt),
@@ -24,7 +24,7 @@ pub enum Screen {
     ManageAlarm(ManageAlarm),
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum MenuElt {
     Clock,
     SetClock,
@@ -55,12 +55,12 @@ impl MenuElt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EditDateTime {
     pub datetime: datetime::DateTime,
     state: EditDateTimeState,
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EditDateTimeState {
     Year,
     Month,
@@ -139,7 +139,7 @@ impl EditDateTime {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ManageAlarm {
     id: usize,
     alarm: Alarm,
@@ -175,7 +175,7 @@ impl ManageAlarm {
         self.state.render(&self.alarm, display);
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ManageAlarmState {
     Main(ManageAlarmMainState),
     SetHour,
@@ -281,7 +281,7 @@ impl ManageAlarmState {
         }
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ManageAlarmMainState {
     ToggleEnable,
     SetTime,
@@ -343,7 +343,7 @@ impl ManageAlarmMainState {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ManageAlarmManageRepeatState {
     Monday,
     Tuesday,
