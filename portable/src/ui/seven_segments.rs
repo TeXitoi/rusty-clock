@@ -90,7 +90,7 @@ impl<'a> SevenSegments<'a> {
     fn draw_rect(&mut self, x1: i32, y1: i32, x2: i32, y2: i32) {
         self.display.draw(
             Rect::new(Coord::new(x1, y1), Coord::new(x2, y2))
-                .with_fill(Some(1u8.into()))
+                .with_fill(Some(1u8))
                 .translate(Coord::new(self.x, self.y))
                 .into_iter(),
         );

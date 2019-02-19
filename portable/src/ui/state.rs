@@ -50,7 +50,7 @@ impl MenuElt {
     pub fn cancel(&mut self) -> Screen {
         Screen::Clock
     }
-    pub fn items(&self) -> &'static [&'static str] {
+    pub fn items(self) -> &'static [&'static str] {
         &["Main screen", "Set clock", "Manage alarms"]
     }
 }
@@ -183,7 +183,7 @@ enum ManageAlarmState {
     ManageRepeat(ManageAlarmManageRepeatState),
 }
 impl ManageAlarmState {
-    pub fn ok(&self, manage: &ManageAlarm, cmds: &mut Vec<Cmd, U4>) -> Screen {
+    pub fn ok(self, manage: &ManageAlarm, cmds: &mut Vec<Cmd, U4>) -> Screen {
         use self::ManageAlarmState::*;
         match self {
             Main(state) => state.ok(manage, cmds),
@@ -200,7 +200,7 @@ impl ManageAlarmState {
             ManageRepeat(state) => state.ok(manage),
         }
     }
-    pub fn next(&self, alarm: &mut Alarm) -> Self {
+    pub fn next(self, alarm: &mut Alarm) -> Self {
         use self::ManageAlarmState::*;
         match self {
             Main(state) => Main(state.next()),
@@ -217,7 +217,7 @@ impl ManageAlarmState {
             ManageRepeat(state) => ManageRepeat(state.next()),
         }
     }
-    pub fn prev(&self, alarm: &mut Alarm) -> Self {
+    pub fn prev(self, alarm: &mut Alarm) -> Self {
         use self::ManageAlarmState::*;
         match self {
             Main(state) => Main(state.prev()),
@@ -234,7 +234,7 @@ impl ManageAlarmState {
             ManageRepeat(state) => ManageRepeat(state.prev()),
         }
     }
-    pub fn cancel(&self) -> Option<Self> {
+    pub fn cancel(self) -> Option<Self> {
         use self::ManageAlarmState::*;
         match self {
             Main(..) => None,
@@ -243,7 +243,7 @@ impl ManageAlarmState {
             ManageRepeat(..) => Some(Main(ManageAlarmMainState::ManageRepeat)),
         }
     }
-    pub fn render(&self, alarm: &Alarm, display: &mut DisplayRibbonLeft) {
+    pub fn render(self, alarm: &Alarm, display: &mut DisplayRibbonLeft) {
         use self::ManageAlarmState::*;
 
         let mut title = String::<U40>::new();
@@ -261,7 +261,7 @@ impl ManageAlarmState {
                     "Manage repeat",
                     "Save and quit",
                 ];
-                menu::render(&title, &menu, *state as i32, display);
+                menu::render(&title, &menu, state as i32, display);
             }
             SetHour => menu::render(&title, &["Set hour"], 0, display),
             SetMin => menu::render(&title, &["Set minute"], 0, display),
@@ -276,7 +276,7 @@ impl ManageAlarmState {
                     manage_str!(alarm, Sunday, SUNDAY),
                     "Back",
                 ];
-                menu::render(&title, &menu, *state as i32, display);
+                menu::render(&title, &menu, state as i32, display);
             }
         }
     }
@@ -290,7 +290,7 @@ enum ManageAlarmMainState {
     Quit,
 }
 impl ManageAlarmMainState {
-    pub fn ok(&self, manage: &ManageAlarm, cmds: &mut Vec<Cmd, U4>) -> Screen {
+    pub fn ok(self, manage: &ManageAlarm, cmds: &mut Vec<Cmd, U4>) -> Screen {
         use self::ManageAlarmMainState::*;
         match self {
             ToggleEnable => {
@@ -321,9 +321,9 @@ impl ManageAlarmMainState {
             }
         }
     }
-    pub fn next(&self) -> Self {
+    pub fn next(self) -> Self {
         use self::ManageAlarmMainState::*;
-        match *self {
+        match self {
             ToggleEnable => SetTime,
             SetTime => ToggleOneTime,
             ToggleOneTime => ManageRepeat,
@@ -331,9 +331,9 @@ impl ManageAlarmMainState {
             Quit => ToggleEnable,
         }
     }
-    pub fn prev(&self) -> Self {
+    pub fn prev(self) -> Self {
         use self::ManageAlarmMainState::*;
-        match *self {
+        match self {
             ToggleEnable => Quit,
             SetTime => ToggleEnable,
             ToggleOneTime => SetTime,
@@ -355,7 +355,7 @@ enum ManageAlarmManageRepeatState {
     Quit,
 }
 impl ManageAlarmManageRepeatState {
-    pub fn ok(&self, manage: &ManageAlarm) -> Screen {
+    pub fn ok(self, manage: &ManageAlarm) -> Screen {
         use self::ManageAlarmManageRepeatState::*;
         let toggle = |d| {
             let mut manage = manage.clone();
@@ -377,9 +377,9 @@ impl ManageAlarmManageRepeatState {
             }
         }
     }
-    pub fn next(&self) -> Self {
+    pub fn next(self) -> Self {
         use self::ManageAlarmManageRepeatState::*;
-        match *self {
+        match self {
             Monday => Tuesday,
             Tuesday => Wednesday,
             Wednesday => Thursday,
@@ -390,9 +390,9 @@ impl ManageAlarmManageRepeatState {
             Quit => Monday,
         }
     }
-    pub fn prev(&self) -> Self {
+    pub fn prev(self) -> Self {
         use self::ManageAlarmManageRepeatState::*;
-        match *self {
+        match self {
             Monday => Quit,
             Tuesday => Monday,
             Wednesday => Tuesday,

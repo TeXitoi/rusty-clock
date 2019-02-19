@@ -40,7 +40,7 @@ impl AlarmManager {
                         if dow == dt.day_of_week && this_h <= now_h {
                             days += 7
                         }
-                        days as u32 * 60 * 24 + this_h
+                        u32::from(days) * 60 * 24 + this_h
                     };
                     if cmp_value(cur) < cmp_value(min_val) {
                         min = Some(cur);
@@ -62,14 +62,14 @@ pub struct Alarm {
 
 bitflags! {
     pub struct Mode: u8 {
-        const MONDAY =    0b00000001;
-        const TUESDAY =   0b00000010;
-        const WEDNESDAY = 0b00000100;
-        const THURSDAY =  0b00001000;
-        const FRIDAY =    0b00010000;
-        const SATURDAY =  0b00100000;
-        const SUNDAY =    0b01000000;
-        const ONE_TIME =  0b10000000;
+        const MONDAY =    0b0000_0001;
+        const TUESDAY =   0b0000_0010;
+        const WEDNESDAY = 0b0000_0100;
+        const THURSDAY =  0b0000_1000;
+        const FRIDAY =    0b0001_0000;
+        const SATURDAY =  0b0010_0000;
+        const SUNDAY =    0b0100_0000;
+        const ONE_TIME =  0b1000_0000;
     }
 }
 impl Default for Mode {
@@ -78,7 +78,7 @@ impl Default for Mode {
     }
 }
 impl Mode {
-    pub fn contains_dow(&self, dow: DayOfWeek) -> bool {
+    pub fn contains_dow(self, dow: DayOfWeek) -> bool {
         use self::DayOfWeek::*;
         match dow {
             Monday => self.contains(Mode::MONDAY),
@@ -184,7 +184,7 @@ static VEC_DAY_OF_WEEK_SHORT_NAME: [(Mode, &str); 7] = [
     (Mode::SUNDAY, " Su"),
 ];
 fn time(hour: u8, min: u8) -> u32 {
-    hour as u32 * 60 + min as u32
+    u32::from(hour) * 60 + u32::from(min)
 }
 
 #[cfg(test)]

@@ -99,8 +99,8 @@ impl DateTime {
             month += 1;
         }
         DateTime {
-            year: year,
-            month: month,
+            year,
+            month,
             day: (days + 1) as u8,
             hour: (time / 60 / 60) as u8,
             min: (time / 60 % 60) as u8,
@@ -109,10 +109,10 @@ impl DateTime {
         }
     }
     pub fn to_epoch(&self) -> Option<u32> {
-        if self.year < 1970 || self.month <= 0 || self.month > 12 || self.day <= 0 {
+        if self.year < 1970 || self.month == 0 || self.month > 12 || self.day == 0 {
             return None;
         }
-        let mut days = self.day as u32 - 1;
+        let mut days = u32::from(self.day) - 1;
         for y in 1970..self.year {
             if is_leap(y) {
                 days = days.checked_add(366)?;
@@ -128,7 +128,7 @@ impl DateTime {
             days = days.checked_add(m)?;
         }
 
-        let time = self.hour as u32 * 3600 + self.min as u32 * 60 + self.sec as u32;
+        let time = u32::from(self.hour) * 3600 + u32::from(self.min) * 60 + u32::from(self.sec);
         let epoch = days.checked_mul(86400)?.checked_add(time)?;
         Some(epoch)
     }

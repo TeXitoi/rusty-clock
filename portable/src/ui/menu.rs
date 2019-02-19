@@ -17,7 +17,7 @@ pub fn render(title: &str, mut items: &[&str], mut selected: i32, display: &mut 
     let len = items.len();
     if len > 5 {
         let page = (selected / 5) as usize;
-        selected = selected % 5;
+        selected %= 5;
         items = &items[page * 5..min(page * 5 + 5, len)];
 
         let mut s = String::<U5>::new();
@@ -40,7 +40,7 @@ pub fn render(title: &str, mut items: &[&str], mut selected: i32, display: &mut 
     }
     render_str(
         ">",
-        MARGIN_LEFT + 1 * FONT_WIDTH,
+        MARGIN_LEFT + FONT_WIDTH,
         MARGIN_TOP + (selected + 1) * INTERLINE,
         display,
     );
@@ -49,7 +49,7 @@ pub fn render(title: &str, mut items: &[&str], mut selected: i32, display: &mut 
 fn render_str(s: &str, x: i32, y: i32, display: &mut DisplayRibbonLeft) {
     display.draw(
         Font8x16::render_str(s)
-            .with_stroke(Some(1u8.into()))
+            .with_stroke(Some(1u8))
             .translate(Coord::new(x, y))
             .into_iter(),
     );

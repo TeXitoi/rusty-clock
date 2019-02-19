@@ -40,7 +40,7 @@ impl<'a> Header<'a> {
     fn render(&mut self, s: &str, x: i32, y: i32) {
         self.display.draw(
             Font8x16::render_str(s)
-                .with_stroke(Some(1u8.into()))
+                .with_stroke(Some(1u8))
                 .translate(Coord::new(x, y))
                 .into_iter(),
         );

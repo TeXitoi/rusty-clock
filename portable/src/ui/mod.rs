@@ -156,7 +156,7 @@ impl Model {
         use self::state::Screen::*;
         match &self.screen {
             Clock => self.render_clock(&mut display),
-            Menu(elt) => self.render_menu(elt, &mut display),
+            Menu(elt) => self.render_menu(*elt, &mut display),
             SetClock(datetime) => self.render_set_clock(datetime, &mut display),
             ManageAlarms(i) => self.render_manage_alarms(*i, &mut display),
             ManageAlarm(state) => state.render(&mut display),
@@ -201,7 +201,7 @@ impl Model {
         if self.env.humidity != 0 {
             write!(s, "{:2}%RH  ", self.env.humidity).unwrap();
         }
-        write!(s, "{}°C", Centi(self.env.temperature as i32)).unwrap();
+        write!(s, "{}°C", Centi(i32::from(self.env.temperature))).unwrap();
         header.top_right(&s);
     }
     fn render_clock(&self, display: &mut DisplayRibbonLeft) {
@@ -226,13 +226,13 @@ impl Model {
         write!(s, ":{:02}", self.now.sec).unwrap();
         display.draw(
             Font8x16::render_str(&s)
-                .with_stroke(Some(1u8.into()))
+                .with_stroke(Some(1u8))
                 .translate(Coord::new(296 - 3 * 8, 17))
                 .into_iter(),
         );
     }
-    fn render_menu(&self, elt: &state::MenuElt, display: &mut DisplayRibbonLeft) {
-        menu::render("Menu:", elt.items(), *elt as i32, display);
+    fn render_menu(&self, elt: state::MenuElt, display: &mut DisplayRibbonLeft) {
+        menu::render("Menu:", elt.items(), elt as i32, display);
     }
     fn render_set_clock(&self, dt: &state::EditDateTime, display: &mut DisplayRibbonLeft) {
         let mut title: String<U128> = String::new();
