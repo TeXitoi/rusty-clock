@@ -10,6 +10,7 @@ use pwm_speaker::songs::SO_WHAT;
 use rtfm::app;
 use stm32f1xx_hal::prelude::*;
 use stm32f1xx_hal::{delay, gpio, i2c, spi, stm32, timer};
+use epd_waveshare::prelude::{WaveshareDisplay};
 
 mod sound;
 
@@ -32,12 +33,19 @@ type Spi = spi::Spi<
         gpio::gpiob::PB15<gpio::Alternate<gpio::PushPull>>,
     ),
 >;
-type EPaperDisplay = il3820::Il3820<
+// type EPaperDisplay = il3820::Il3820<
+//     Spi, //spi
+//     gpio::gpiob::PB12<gpio::Output<gpio::PushPull>>, // cs/nss
+//     gpio::gpioa::PA8<gpio::Output<gpio::PushPull>>, // dc
+//     gpio::gpioa::PA9<gpio::Output<gpio::PushPull>>, // rst
+//     gpio::gpioa::PA10<gpio::Input<gpio::Floating>>, // busy
+// >;
+type EPaperDisplay = epd_waveshare::epd2in9::EPD2in9<
     Spi,
-    gpio::gpiob::PB12<gpio::Output<gpio::PushPull>>,
-    gpio::gpioa::PA8<gpio::Output<gpio::PushPull>>,
-    gpio::gpioa::PA9<gpio::Output<gpio::PushPull>>,
-    gpio::gpioa::PA10<gpio::Input<gpio::Floating>>,
+    gpio::gpiob::PB12<gpio::Output<gpio::PushPull>>, // cs/nss
+    gpio::gpioa::PA10<gpio::Input<gpio::Floating>>, // busy
+    gpio::gpioa::PA8<gpio::Output<gpio::PushPull>>, // dc
+    gpio::gpioa::PA9<gpio::Output<gpio::PushPull>>, // rst
 >;
 
 #[app(device = stm32f1xx_hal::stm32)]
@@ -123,20 +131,20 @@ const APP: () = {
         let mut spi = spi::Spi::spi2(
             device.SPI2,
             (sck, miso, mosi),
-            il3820::MODE,
+            epd_waveshare::SPI_MODE,
             4.mhz(),
             clocks,
             &mut rcc.apb1,
         );
-        let mut il3820 = il3820::Il3820::new(
+        let mut il3820 = epd_waveshare::epd2in9::EPD2in9::new(
             &mut spi,
             gpiob.pb12.into_push_pull_output(&mut gpiob.crh),
-            gpioa.pa8.into_push_pull_output(&mut gpioa.crh),
-            gpioa.pa9.into_push_pull_output(&mut gpioa.crh),
             gpioa.pa10.into_floating_input(&mut gpioa.crh),
+            gpioa.pa8.into_push_pull_output(&mut gpioa.crh),
+            gpioa.pa9.into_push_pull_output(&mut gpioa.crh),            
             &mut delay,
-        );
-        il3820.clear(&mut spi).unwrap();
+        ).unwrap();
+        il3820.clear_frame(&mut spi).unwrap();
 
         core.DCB.enable_trace();
         core.DWT.enable_cycle_counter();

@@ -8,5 +8,5 @@ edition = "2018"
 bitflags = "1.0"
 embedded-graphics = "0.4.1"
 heapless = "0.4"
-il3820 = { git = "https://github.com/TeXitoi/il3820" }
+epd-waveshare = { git = "https://github.com/caemor/epd-waveshare", branch = "fixes-for-rusty-clock" }
 embedded-hal = { version = "0.2.1", features = ["unproven"] }
