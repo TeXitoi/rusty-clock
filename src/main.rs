@@ -10,7 +10,7 @@ use portable::{alarm, button, datetime, ui};
 use pwm_speaker::songs::SO_WHAT;
 use rtfm::app;
 use stm32f1xx_hal::prelude::*;
-use stm32f1xx_hal::{delay, gpio, i2c, spi, stm32, timer};
+use stm32f1xx_hal::{delay, gpio, i2c, spi, stm32, timer, rtc};
 
 mod sound;
 
@@ -43,7 +43,7 @@ type EPaperDisplay = epd_waveshare::epd2in9::EPD2in9<
 
 #[app(device = stm32f1xx_hal::stm32)]
 const APP: () = {
-    static mut RTC_DEV: stm32f103xx_rtc::Rtc = ();
+    static mut RTC_DEV: rtc::Rtc = ();
     static mut BME280: bme280::BME280<I2C, delay::Delay> = ();
     static mut ALARM_MANAGER: alarm::AlarmManager = ();
     static mut SOUND: sound::Sound = ();
@@ -93,8 +93,9 @@ const APP: () = {
         let mut timer = timer::Timer::tim3(device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
         timer.listen(timer::Event::Update);
 
-        let mut rtc = stm32f103xx_rtc::Rtc::new(device.RTC, &mut rcc.apb1, &mut device.PWR);
-        if rtc.get_cnt() < 100 {
+        let mut backup_domain = rcc.bkp.constrain(device.BKP, &mut rcc.apb1, &mut device.PWR);
+        let mut rtc = rtc::Rtc::rtc(device.RTC, &mut backup_domain);
+        if rtc.seconds() < 100 {
             let today = DateTime {
                 year: 2018,
                 month: 9,
@@ -105,10 +106,10 @@ const APP: () = {
                 day_of_week: datetime::DayOfWeek::Wednesday,
             };
             if let Some(epoch) = today.to_epoch() {
-                rtc.set_cnt(epoch);
+                rtc.set_seconds(epoch);
             }
         }
-        rtc.listen_second_interrupt();
+        rtc.listen_seconds();
 
         use crate::alarm::Mode;
         let mut alarm_manager = alarm::AlarmManager::default();
@@ -211,10 +212,9 @@ const APP: () = {
 
     #[interrupt(priority = 3, spawn = [msg], resources = [RTC_DEV, BME280, ALARM_MANAGER, SOUND])]
     fn RTC() {
-        resources.RTC_DEV.clear_second_interrupt();
-        resources.RTC_DEV.sync();
+        resources.RTC_DEV.clear_second_flag();
 
-        let datetime = DateTime::new(resources.RTC_DEV.get_cnt());
+        let datetime = DateTime::new(resources.RTC_DEV.seconds());
         if datetime.sec == 0 && resources.ALARM_MANAGER.must_ring(&datetime) {
             resources.SOUND.lock(|alarm| alarm.play(&SO_WHAT, 10 * 60));
             let manager = resources.ALARM_MANAGER.clone();
@@ -242,7 +242,7 @@ const APP: () = {
                 UpdateRtc(dt) => {
                     if let Some(epoch) = dt.to_epoch() {
                         resources.RTC_DEV.lock(|rtc| {
-                            let _ = rtc.set_cnt(epoch);
+                            let _ = rtc.set_seconds(epoch);
                         });
                         spawn.msg(ui::Msg::DateTime(dt)).unwrap();
                     }
