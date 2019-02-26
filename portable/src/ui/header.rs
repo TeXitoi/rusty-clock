@@ -1,7 +1,10 @@
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::Font8x16;
 use embedded_graphics::prelude::*;
-use il3820::DisplayRibbonLeft;
+//use epd_waveshare::epd2in9::EPD2in9 as DisplayRibbonLeft;
+//use il3820::DisplayRibbonLeft;
+use epd_waveshare::graphics::Display;
+use epd_waveshare::prelude::Color;
 
 const MARGIN: i32 = 0;
 const FONT_HEIGHT: i32 = 16;
@@ -9,10 +12,10 @@ const FONT_WIDTH: i32 = 8;
 const BOTTOM_Y: i32 = 128 - MARGIN - FONT_HEIGHT;
 
 pub struct Header<'a> {
-    display: &'a mut DisplayRibbonLeft,
+    display: &'a mut Display<'a>,
 }
 impl<'a> Header<'a> {
-    pub fn new(display: &'a mut DisplayRibbonLeft) -> Self {
+    pub fn new(display: &'a mut Display<'a>) -> Self {
         Self { display }
     }
     pub fn top_left(&mut self, s: &str) {
@@ -40,7 +43,7 @@ impl<'a> Header<'a> {
     fn render(&mut self, s: &str, x: i32, y: i32) {
         self.display.draw(
             Font8x16::render_str(s)
-                .with_stroke(Some(1u8))
+                .with_stroke(Some(Color::Black))
                 .translate(Coord::new(x, y))
                 .into_iter(),
         );

@@ -114,7 +114,7 @@ dependencies = [
 [[package]]
 name = "epd-waveshare"
 version = "0.2.0"
-source = "git+https://github.com/caemor/epd-waveshare?branch=fixes-for-rusty-clock#8b247a55f9436b8599e4773dc799be070f988906"
+source = "git+https://github.com/caemor/epd-waveshare?branch=fixes-for-rusty-clock#462812350b4796152051017f0081073671b4c1a8"
 dependencies = [
  "embedded-graphics 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-hal 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
