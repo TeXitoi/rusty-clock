@@ -1,14 +1,11 @@
 use embedded_graphics::coord::Coord;
 use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::Rect;
-//use epd_waveshare::epd2in9::EPD2in9 as DisplayRibbonLeft;
-//use il3820::DisplayRibbonLeft;
-use epd_waveshare::graphics::Display;
+use epd_waveshare::epd2in9::Display2in9;
 use epd_waveshare::prelude::Color;
 
-
 pub struct SevenSegments<'a> {
-    display: &'a mut Display<'a>,
+    display: &'a mut Display2in9,
     width: i32,
     height: i32,
     thickness: i32,
@@ -17,7 +14,7 @@ pub struct SevenSegments<'a> {
     y: i32,
 }
 impl<'a> SevenSegments<'a> {
-    pub fn new(display: &'a mut Display<'a>, x: i32, y: i32) -> Self {
+    pub fn new(display: &'a mut Display2in9, x: i32, y: i32) -> Self {
         Self {
             display,
             width: 52,
@@ -28,7 +25,7 @@ impl<'a> SevenSegments<'a> {
             y,
         }
     }
-    pub fn into_display(self) -> &'a mut Display<'a> {
+    pub fn into_display(self) -> &'a mut Display2in9 {
         self.display
     }
     pub fn colon_space(&mut self) {

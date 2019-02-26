@@ -4,13 +4,13 @@
 #[cfg(not(test))]
 extern crate panic_semihosting;
 
+use epd_waveshare::prelude::*;
 use portable::datetime::DateTime;
 use portable::{alarm, button, datetime, ui};
 use pwm_speaker::songs::SO_WHAT;
 use rtfm::app;
 use stm32f1xx_hal::prelude::*;
 use stm32f1xx_hal::{delay, gpio, i2c, spi, stm32, timer};
-use epd_waveshare::prelude::{WaveshareDisplay};
 
 mod sound;
 
@@ -43,9 +43,9 @@ type Spi = spi::Spi<
 type EPaperDisplay = epd_waveshare::epd2in9::EPD2in9<
     Spi,
     gpio::gpiob::PB12<gpio::Output<gpio::PushPull>>, // cs/nss
-    gpio::gpioa::PA10<gpio::Input<gpio::Floating>>, // busy
-    gpio::gpioa::PA8<gpio::Output<gpio::PushPull>>, // dc
-    gpio::gpioa::PA9<gpio::Output<gpio::PushPull>>, // rst
+    gpio::gpioa::PA10<gpio::Input<gpio::Floating>>,  // busy
+    gpio::gpioa::PA8<gpio::Output<gpio::PushPull>>,  // dc
+    gpio::gpioa::PA9<gpio::Output<gpio::PushPull>>,  // rst
 >;
 
 #[app(device = stm32f1xx_hal::stm32)]
@@ -141,9 +141,10 @@ const APP: () = {
             gpiob.pb12.into_push_pull_output(&mut gpiob.crh),
             gpioa.pa10.into_floating_input(&mut gpioa.crh),
             gpioa.pa8.into_push_pull_output(&mut gpioa.crh),
-            gpioa.pa9.into_push_pull_output(&mut gpioa.crh),            
+            gpioa.pa9.into_push_pull_output(&mut gpioa.crh),
             &mut delay,
-        ).unwrap();
+        )
+        .unwrap();
         il3820.clear_frame(&mut spi).unwrap();
 
         core.DCB.enable_trace();
@@ -266,14 +267,24 @@ const APP: () = {
             .FULL_UPDATE
             .lock(|fu| core::mem::replace(&mut *fu, false));
         if full_update {
-            resources.DISPLAY.set_full();
+            resources
+                .DISPLAY
+                .set_lut(&mut *resources.SPI, Some(RefreshLUT::FULL))
+                .unwrap(); //resources.DISPLAY.set_full();
         }
         resources
             .DISPLAY
-            .set_display(&mut *resources.SPI, &display)
+            .update_frame(&mut *resources.SPI, &display.buffer())
             .unwrap();
-        resources.DISPLAY.update(&mut *resources.SPI).unwrap();
-        resources.DISPLAY.set_partial();
+        resources
+            .DISPLAY
+            .display_frame(&mut *resources.SPI)
+            .unwrap();
+        resources
+            .DISPLAY
+            .set_lut(&mut *resources.SPI, Some(RefreshLUT::QUICK))
+            .unwrap();
+        //resources.DISPLAY.set_partial();
     }
 
     // Interrupt handlers used to dispatch software tasks

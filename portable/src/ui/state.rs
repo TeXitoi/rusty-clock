@@ -2,14 +2,8 @@ use super::{menu, Cmd};
 use crate::alarm::{Alarm, AlarmManager, Mode};
 use crate::datetime;
 use core::fmt::Write;
+use epd_waveshare::epd2in9::Display2in9;
 use heapless::{consts::*, String, Vec};
-
-//use il3820::DisplayRibbonLeft;
-//let mut buffer = Buffer2in9::default();
-    //let mut display = Display::new(epd.width(), epd.height(), &mut buffer.buffer);
-use epd_waveshare::graphics::Display;
-
-
 
 macro_rules! manage_str {
     ( $alarm: ident, $d:ident, $m:ident ) => {
@@ -177,7 +171,7 @@ impl ManageAlarm {
             }),
         }
     }
-    pub fn render(&self, display: &mut Display) {
+    pub fn render(&self, display: &mut Display2in9) {
         self.state.render(&self.alarm, display);
     }
 }
@@ -249,7 +243,7 @@ impl ManageAlarmState {
             ManageRepeat(..) => Some(Main(ManageAlarmMainState::ManageRepeat)),
         }
     }
-    pub fn render(self, alarm: &Alarm, display: &mut Display) {
+    pub fn render(self, alarm: &Alarm, display: &mut Display2in9) {
         use self::ManageAlarmState::*;
 
         let mut title = String::<U40>::new();
