@@ -21,8 +21,8 @@ module aaa_holder(thickness=2, with_baterry=false) {
         translate([0,i,thickness]) cube([aaa_height+tolerance+2*thickness, thickness, 7]);
       }
     }
-    for (i=[thickness, thickness+tolerance+aaa_height-0.5])
-      translate([i, -width, thickness]) cube([0.5, width*2, 5]);
+    for (i=[thickness, thickness+tolerance+aaa_height-1])
+      translate([i, -width, thickness]) cube([1, width*2, 5]);
   }
   if (with_baterry) {
     translate([thickness+tolerance/2, 0, thickness+aaa_diameter/2]) rotate([0,90,]) aaa_battery();

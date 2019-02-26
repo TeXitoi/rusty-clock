@@ -70,9 +70,10 @@ module epaper_pocket() {
 
     // pcb
     difference() {
-      translate([0,0,-10]) cube([width+1, height+1, 20], center=true);
+      depth=30;
+      translate([0,0,-depth/2]) cube([width+1, height+1, depth], center=true);
       for (pos=[[1,1,45], [-1,1,45+90], [-1,-1,45+180], [1,-1,45+270]]) {
-        translate([pos.x*(width+1)/2, pos.y*(height+1)/2, -20])
+        translate([pos.x*(width+1)/2, pos.y*(height+1)/2, -depth])
           rotate([0, 45, pos[2]])
             cube([10*sqrt(2),40,10*sqrt(2)], center=true);
       }

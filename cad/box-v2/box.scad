@@ -64,7 +64,7 @@ module box() {
                    thickness]){
           difference() {
             cube([20.5, thickness, 15]);
-            translate([20/2, -thickness, 13]) cube([0.5, 3*thickness, 0.5]);
+            translate([20/2, -thickness, 13]) cube([1, 3*thickness, 1]);
             translate([(20.5-14.5)/2, -thickness, 0]) cube([14.5, 3*thickness, 7]);
           }
         }
@@ -85,8 +85,8 @@ module box() {
 
       // backpanel screw holes
       for (coord=backpanel_hole_coords)
-        translate([coord.x, coord.y, box_depth - 10])
-          cylinder(d=1.8, h=10);
+        translate([coord.x, coord.y, box_depth - 19])
+          cylinder(d=1.8, h=19);
 
       // debugger pocket
       translate([box_width/2-thickness-backpanel_pilone_size-bluepill_height/2,

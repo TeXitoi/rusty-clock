@@ -53,10 +53,10 @@ module speaker(support_thickness=2) {
 
 module speaker_pocket() {
   difference() {
-    translate([0,0,-30]) linear_extrude(30) rounded_square([54, 54], r=4, center=true);
+    translate([0,0,-45]) linear_extrude(45) rounded_square([54, 54], r=4, center=true);
     for (r=[45:90:360]) {
       rotate([0,0,r])
-        translate([54/2*sqrt(2), 0, -30])
+        translate([54/2*sqrt(2), 0, -45])
         rotate([0, 45, 0])
         cube([20,40,20], center=true);
     }

@@ -20,7 +20,7 @@ backpanel_hole_coords=[
 
 module button_placement() {
   button_spacing=25;
-  button_x=box_width/2-7-2*button_spacing;
+  button_x=box_width/2-9-2*button_spacing;
   for (coord = [ for (i=[-1.5:1.5]) [i*button_spacing+button_x, box_height/2, 20] ])
     translate(coord)
       rotate([-90, 0, 0])
