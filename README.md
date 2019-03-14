@@ -1,14 +1,12 @@
 # Rusty clock [![Build status](https://travis-ci.org/TeXitoi/rusty-clock.svg?branch=master)](https://travis-ci.org/TeXitoi/rusty-clock)
 
-An alarm clock with environment stats in pure bare metal embedded rust.
+An alarm clock in pure bare metal embedded rust (no OS). It features pressure, temperature, humidity, monophonic alarm on a e-paper display. The 5 programmable alarms can ring one time (and never repeat) or every week day that you want (for example only Monday and Thursday).
 
 ![fromt](images/front.jpg)
 ![back](images/back.jpg)
 ![open](images/open.jpg)
 
-## Description
-
-This alarm clock is programed in bare metal rust (no OS). It features pressure, temperature, humidity, monophonic alarm on a e-paper display.
+You can also look at the [gallery](gallery.md).
 
 ## Hardware
 
