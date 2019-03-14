@@ -1,16 +1,22 @@
+thickness=2;
+
+box_color=[40/255, 177/255, 214/255];
+
 // bluepill including tolerance
 bluepill_width=53;
 bluepill_height=23;
 
-thickness=2;
-
 backpanel_pilone_size=7;
 backpanel_insertion_size=1;
-
 box_width=155;
 box_height=54+2*(thickness);
 box_depth=bluepill_width + 2 + 2*thickness + backpanel_insertion_size;
 box_rounding=6;
+box_pilone_height=box_depth-thickness-backpanel_insertion_size;
+
+bluepill_x=box_width/2-thickness-backpanel_pilone_size - 23/2;
+bluepill_y=-box_height/2+backpanel_pilone_size - 0.5 * thickness;
+
 backpanel_hole_coords=[
   for (i=[-1,1])
     for (j=[-1,1])

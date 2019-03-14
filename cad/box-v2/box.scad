@@ -5,7 +5,7 @@ use <battery.scad>
 include <params.scad>
 
 module box() {
-  color([40/255, 177/255, 214/255]) {
+  color(box_color) {
     difference() {
       union() {
         // around
@@ -22,13 +22,12 @@ module box() {
         }
 
         // backpanel pilones
-        pilone_height=box_depth-thickness-backpanel_insertion_size;
         for (i=[-1, 1])
           for (j=[-1, 1]) {
             translate([i * (box_width/2-thickness-backpanel_pilone_size/2),
                        j * (box_height/2-thickness-backpanel_pilone_size/2),
-                       pilone_height/2])
-              cube([backpanel_pilone_size, backpanel_pilone_size, pilone_height], center=true);
+                       box_pilone_height/2])
+              cube([backpanel_pilone_size, backpanel_pilone_size, box_pilone_height], center=true);
           }
 
         // bluepill support
@@ -36,17 +35,17 @@ module box() {
           translate([box_width/2-2*thickness-backpanel_pilone_size - i,
                      -box_height/2+backpanel_pilone_size,
                      0])
-            cube([thickness, thickness, pilone_height]);
+            cube([thickness, thickness, box_pilone_height]);
           translate([box_width/2-2*thickness-backpanel_pilone_size - i,
                      -box_height/2+thickness,
                      0])
-            cube([thickness, backpanel_pilone_size-2*thickness, pilone_height]);
+            cube([thickness, backpanel_pilone_size-2*thickness, box_pilone_height]);
         }
         bp_external_support_x=box_width/2-2*thickness-backpanel_pilone_size-bluepill_height;
         translate([bp_external_support_x,
                    -box_height/2+thickness,
                    0])
-          cube([thickness, backpanel_pilone_size, pilone_height]);
+          cube([thickness, backpanel_pilone_size, box_pilone_height]);
         translate([box_width/2-bluepill_height-thickness-backpanel_pilone_size,
                    -box_height/2+thickness,
                    0])
