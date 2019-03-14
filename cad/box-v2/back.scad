@@ -9,6 +9,8 @@ module back() {
     rounding=box_rounding-thickness-0.5;
     hole_d=3;
     usb_hole_coord=[bluepill_x, bluepill_y + (2.6+1.6)/2, 0];
+    border=1.4*thickness;
+    pattern_size=10;
 
     color(box_color) {
         difference() {
@@ -19,11 +21,10 @@ module back() {
                             rounded_square([width, height], r=rounding, center=true);
                         for (x=[-6:5])
                             for (y=[-4:4]) {
-                                size=10.1;
-                                translate([x*(size*1.5), y*hex_dist(size), 0]) {
-                                    cylinder(d=size-thickness, h=3*thickness, center=true, $fn=6);
-                                    translate([(size*1.5)/2, hex_dist(size)/2, 0])
-                                        cylinder(d=size-thickness, h=3*thickness, center=true, $fn=6);
+                                translate([x*(pattern_size*1.5), y*hex_dist(pattern_size), 0]) {
+                                    cylinder(d=pattern_size-thickness, h=3*thickness, center=true, $fn=6);
+                                    translate([(pattern_size*1.5)/2, hex_dist(pattern_size)/2, 0])
+                                        cylinder(d=pattern_size-thickness, h=3*thickness, center=true, $fn=6);
                                 }
                             }
                     }
@@ -33,16 +34,16 @@ module back() {
                             rounded_square([width, height], r=rounding, center=true);
                         translate([0,0,-thickness])
                             linear_extrude(thickness*3)
-                            rounded_square([width-4*thickness, height-4*thickness], r=rounding, center=true);
+                            rounded_square([width-2*border, height-2*border], r=rounding, center=true);
                     }
                     for (coord=backpanel_hole_coords) {
-                        translate(coord) cylinder(d=hole_d+1+4*thickness, h=3*thickness, center=true);
+                        translate(coord) cylinder(d=hole_d+2+2*border, h=3*thickness, center=true);
                     }
                     translate(usb_hole_coord) {
-                        cube([4, 8+4*thickness, thickness*3], center=true);
+                        cube([4, 8+2*border, thickness*3], center=true);
                         for (x=[-2, 2])
                             translate([x, 0, 0])
-                                cylinder(d=8+4*thickness, h=thickness*3, center=true);
+                                cylinder(d=8+2*border, h=thickness*3, center=true);
                     }
                 }
                 linear_extrude(thickness)
