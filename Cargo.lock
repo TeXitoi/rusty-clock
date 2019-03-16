@@ -114,7 +114,6 @@ dependencies = [
 [[package]]
 name = "epd-waveshare"
 version = "0.2.0"
-source = "git+https://github.com/caemor/epd-waveshare?branch=fixes-for-rusty-clock#ef153bd8fa39dcedb1bd1f072ed5713c19dbdd16"
 dependencies = [
  "embedded-graphics 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-hal 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -186,7 +185,7 @@ dependencies = [
  "bitflags 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-graphics 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-hal 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "epd-waveshare 0.2.0 (git+https://github.com/caemor/epd-waveshare?branch=fixes-for-rusty-clock)",
+ "epd-waveshare 0.2.0",
  "heapless 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -258,7 +257,7 @@ dependencies = [
  "cortex-m 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rtfm 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-hal 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "epd-waveshare 0.2.0 (git+https://github.com/caemor/epd-waveshare?branch=fixes-for-rusty-clock)",
+ "epd-waveshare 0.2.0",
  "panic-semihosting 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "portable 0.1.0",
  "pwm-speaker 0.1.0 (git+https://github.com/TeXitoi/pwm-speaker)",
@@ -370,7 +369,6 @@ dependencies = [
 "checksum cortex-m-semihosting 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d1dc2abec1a772e8bb697cad17d5710f180043caf8939820f0f6ba4b7ae2a4b5"
 "checksum embedded-graphics 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)" = "3e2584680d50f34bbd24db909ddbb8f12eb8f49bbbee23c22a71e6b7a78834e4"
 "checksum embedded-hal 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "9880e55238830314d41d88f1ac7a819d495799c3cc3bc392cc172bab26428c33"
-"checksum epd-waveshare 0.2.0 (git+https://github.com/caemor/epd-waveshare?branch=fixes-for-rusty-clock)" = "<none>"
 "checksum generic-array 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8107dafa78c80c848b71b60133954b4a58609a3a1a5f9af037ecc7f67280f369"
 "checksum hash32 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "12d790435639c06a7b798af9e1e331ae245b7ef915b92f70a39b4cf8c00686af"
 "checksum heapless 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "56b960caff1a46f1fb3c1eb05f0575ac21c6248364ebebde11b11116e099881c"

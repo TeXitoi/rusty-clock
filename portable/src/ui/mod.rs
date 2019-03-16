@@ -5,7 +5,8 @@ use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::Font8x16;
 use embedded_graphics::prelude::*;
 use epd_waveshare::epd2in9::Display2in9;
-use epd_waveshare::prelude::Color;
+use epd_waveshare::graphics::Display;
+use epd_waveshare::prelude::{Color, DisplayRotation};
 use heapless::{consts::*, String, Vec};
 
 mod header;
@@ -151,6 +152,7 @@ impl Model {
     }
     pub fn view(&self) -> Display2in9 {
         let mut display = Display2in9::default();
+        display.set_rotation(DisplayRotation::Rotate270);
         //let mut display = DisplayRibbonLeft::default();
 
         self.render_header(&mut display);
@@ -229,6 +231,7 @@ impl Model {
         display.draw(
             Font8x16::render_str(&s)
                 .with_stroke(Some(Color::Black))
+                .with_fill(Some(Color::White))
                 .translate(Coord::new(296 - 3 * 8, 17))
                 .into_iter(),
         );

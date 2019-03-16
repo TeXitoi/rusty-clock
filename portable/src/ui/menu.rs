@@ -51,6 +51,7 @@ fn render_str(s: &str, x: i32, y: i32, display: &mut Display2in9) {
     display.draw(
         Font8x16::render_str(s)
             .with_stroke(Some(Color::Black))
+            .with_fill(Some(Color::White))
             .translate(Coord::new(x, y))
             .into_iter(),
     );

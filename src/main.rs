@@ -99,7 +99,7 @@ const APP: () = {
                 month: 9,
                 day: 1,
                 hour: 23,
-                min: 15,
+                min: 59,
                 sec: 40,
                 day_of_week: datetime::DayOfWeek::Wednesday,
             };
@@ -145,6 +145,9 @@ const APP: () = {
             &mut delay,
         )
         .unwrap();
+        il3820
+            .set_lut(&mut spi, Some(RefreshLUT::QUICK))
+            .unwrap();
         il3820.clear_frame(&mut spi).unwrap();
 
         core.DCB.enable_trace();
@@ -164,7 +167,7 @@ const APP: () = {
         );
         let i2c = i2c::blocking_i2c(i2c, clocks, 100, 100, 100, 100);
         let mut bme280 = bme280::BME280::new_primary(i2c, delay);
-        bme280.init().unwrap();
+        bme280.init().expect("i2c init error");
 
         spawn
             .msg(ui::Msg::AlarmManager(alarm_manager.clone()))
@@ -280,11 +283,13 @@ const APP: () = {
             .DISPLAY
             .display_frame(&mut *resources.SPI)
             .unwrap();
-        resources
-            .DISPLAY
-            .set_lut(&mut *resources.SPI, Some(RefreshLUT::QUICK))
-            .unwrap();
-        //resources.DISPLAY.set_partial();
+        //if full_update { // partial/quick refresh needs only be set when a full update was run before
+            resources
+                .DISPLAY
+                .set_lut(&mut *resources.SPI, Some(RefreshLUT::QUICK))
+                .unwrap();
+        //} //resources.DISPLAY.set_partial();        
+        
     }
 
     // Interrupt handlers used to dispatch software tasks
