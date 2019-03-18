@@ -19,3 +19,8 @@
 
 ![](images/07-box-v2-rendered-front.png)
 ![](images/08-box-v2-rendered-back.png)
+
+## The alarm clock v2
+
+![](images/24-v2-front.jpg)
+![](images/25-v2-back.jpg)
