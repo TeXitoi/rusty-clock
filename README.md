@@ -2,8 +2,7 @@
 
 An alarm clock in pure bare metal embedded rust (no OS). It features pressure, temperature, humidity, monophonic alarm on a e-paper display. The 5 programmable alarms can ring one time (and never repeat) or every week day that you want (for example only Monday and Thursday).
 
-![front](images/04-mvp-front.jpg)
-![open](images/06-mvp-open.jpg)
+![front](images/front.jpg)
 
 You can also look at the [gallery](gallery.md).
 
