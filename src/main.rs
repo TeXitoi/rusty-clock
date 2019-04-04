@@ -291,12 +291,12 @@ const APP: () = {
             .DISPLAY
             .display_frame(&mut *resources.SPI)
             .unwrap();
-        //if full_update { // partial/quick refresh needs only be set when a full update was run before
+        if full_update { // partial/quick refresh needs only be set when a full update was run before
             resources
                 .DISPLAY
                 .set_lut(&mut *resources.SPI, Some(RefreshLUT::QUICK))
                 .unwrap();
-        //} //resources.DISPLAY.set_partial();        
+        } //replacement of old: resources.DISPLAY.set_partial();        
         
     }
 
