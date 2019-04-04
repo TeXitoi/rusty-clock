@@ -78,11 +78,19 @@ const APP: () = {
         let mut gpiob = device.GPIOB.split(&mut rcc.apb2);
 
         let c1 = gpioa.pa0.into_alternate_push_pull(&mut gpioa.crl);
-        let mut pwm = device
-            .TIM2
-            .pwm(c1, &mut afio.mapr, 440.hz(), clocks, &mut rcc.apb1);
-        pwm.enable();
-        let speaker = pwm_speaker::Speaker::new(pwm, clocks);
+        let c2 = gpioa.pa1.into_alternate_push_pull(&mut gpioa.crl);
+        let c3 = gpioa.pa2.into_alternate_push_pull(&mut gpioa.crl);
+        let c4 = gpioa.pa3.into_alternate_push_pull(&mut gpioa.crl);
+        let mut pwm = device.TIM2.pwm(
+            (c1, c2, c3, c4),
+            &mut afio.mapr,
+            440.hz(),
+            clocks,
+            &mut rcc.apb1,
+        );
+        pwm.0.enable();
+        pwm.1.enable();
+        let speaker = pwm_speaker::Speaker::new(pwm.0, clocks);
 
         let button0_pin = gpioa.pa6.into_pull_up_input(&mut gpioa.crl);
         let button1_pin = gpioa.pa7.into_pull_up_input(&mut gpioa.crl);
@@ -165,7 +173,7 @@ const APP: () = {
             clocks,
             &mut rcc.apb1,
         );
-        let i2c = i2c::blocking_i2c(i2c, clocks, 100, 100, 100, 100);
+        let i2c = i2c::blocking_i2c(i2c, clocks, 200, 10, 200, 200);
         let mut bme280 = bme280::BME280::new_primary(i2c, delay);
         bme280.init().expect("i2c init error");
 
