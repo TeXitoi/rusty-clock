@@ -291,6 +291,7 @@ const APP: () = {
             .DISPLAY
             .display_frame(&mut *resources.SPI)
             .unwrap();
+        while resources.DISPLAY.is_busy() {}
         if full_update { // partial/quick refresh needs only be set when a full update was run before
             resources
                 .DISPLAY
