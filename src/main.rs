@@ -33,13 +33,6 @@ type Spi = spi::Spi<
         gpio::gpiob::PB15<gpio::Alternate<gpio::PushPull>>,
     ),
 >;
-// type EPaperDisplay = il3820::Il3820<
-//     Spi, //spi
-//     gpio::gpiob::PB12<gpio::Output<gpio::PushPull>>, // cs/nss
-//     gpio::gpioa::PA8<gpio::Output<gpio::PushPull>>, // dc
-//     gpio::gpioa::PA9<gpio::Output<gpio::PushPull>>, // rst
-//     gpio::gpioa::PA10<gpio::Input<gpio::Floating>>, // busy
-// >;
 type EPaperDisplay = epd_waveshare::epd2in9::EPD2in9<
     Spi,
     gpio::gpiob::PB12<gpio::Output<gpio::PushPull>>, // cs/nss
@@ -153,9 +146,7 @@ const APP: () = {
             &mut delay,
         )
         .unwrap();
-        il3820
-            .set_lut(&mut spi, Some(RefreshLUT::QUICK))
-            .unwrap();
+        il3820.set_lut(&mut spi, Some(RefreshLUT::QUICK)).unwrap();
         il3820.clear_frame(&mut spi).unwrap();
 
         core.DCB.enable_trace();
@@ -292,13 +283,13 @@ const APP: () = {
             .display_frame(&mut *resources.SPI)
             .unwrap();
         while resources.DISPLAY.is_busy() {}
-        if full_update { // partial/quick refresh needs only be set when a full update was run before
+        if full_update {
+            // partial/quick refresh needs only be set when a full update was run before
             resources
                 .DISPLAY
                 .set_lut(&mut *resources.SPI, Some(RefreshLUT::QUICK))
                 .unwrap();
-        } //replacement of old: resources.DISPLAY.set_partial();        
-        
+        } //replacement of old: resources.DISPLAY.set_partial();
     }
 
     // Interrupt handlers used to dispatch software tasks
