@@ -262,7 +262,6 @@ const APP: () = {
 
     #[interrupt(priority = 1, resources = [UI, DISPLAY, SPI, FULL_UPDATE])]
     fn EXTI1() {
-        while resources.DISPLAY.is_busy() {}
         let model = resources.UI.lock(|model| model.clone());
         let display = model.view();
         let full_update = resources
@@ -272,8 +271,9 @@ const APP: () = {
             resources
                 .DISPLAY
                 .set_lut(&mut *resources.SPI, Some(RefreshLUT::FULL))
-                .unwrap(); //resources.DISPLAY.set_full();
+                .unwrap();
         }
+
         resources
             .DISPLAY
             .update_frame(&mut *resources.SPI, &display.buffer())
@@ -282,14 +282,14 @@ const APP: () = {
             .DISPLAY
             .display_frame(&mut *resources.SPI)
             .unwrap();
-        while resources.DISPLAY.is_busy() {}
+
         if full_update {
             // partial/quick refresh needs only be set when a full update was run before
             resources
                 .DISPLAY
                 .set_lut(&mut *resources.SPI, Some(RefreshLUT::QUICK))
                 .unwrap();
-        } //replacement of old: resources.DISPLAY.set_partial();
+        }
     }
 
     // Interrupt handlers used to dispatch software tasks

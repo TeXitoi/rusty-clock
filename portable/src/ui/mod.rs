@@ -153,7 +153,6 @@ impl Model {
     pub fn view(&self) -> Display2in9 {
         let mut display = Display2in9::default();
         display.set_rotation(DisplayRotation::Rotate270);
-        //let mut display = DisplayRibbonLeft::default();
 
         self.render_header(&mut display);
 

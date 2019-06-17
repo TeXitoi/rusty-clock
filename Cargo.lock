@@ -116,7 +116,7 @@ dependencies = [
 
 [[package]]
 name = "epd-waveshare"
-version = "0.3.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "embedded-graphics 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -203,7 +203,7 @@ dependencies = [
  "bitflags 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-graphics 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-hal 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "epd-waveshare 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "epd-waveshare 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "heapless 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -275,7 +275,7 @@ dependencies = [
  "cortex-m 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rtfm 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "embedded-hal 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "epd-waveshare 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "epd-waveshare 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "panic-semihosting 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "portable 0.1.0",
  "pwm-speaker 0.1.0 (git+https://github.com/TeXitoi/pwm-speaker)",
@@ -400,7 +400,7 @@ dependencies = [
 "checksum cortex-m-semihosting 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d1dc2abec1a772e8bb697cad17d5710f180043caf8939820f0f6ba4b7ae2a4b5"
 "checksum embedded-graphics 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)" = "da4842bff1d962ccc44d2c796f80a0c835d8ba68a4468364abe0d1bd0f25a27d"
 "checksum embedded-hal 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "9880e55238830314d41d88f1ac7a819d495799c3cc3bc392cc172bab26428c33"
-"checksum epd-waveshare 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "fb24bcf27658b00e863e5b8db83ab87f2eaa8327dfc3cf378d3f37626721e3ac"
+"checksum epd-waveshare 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f5238d78b3e3c71a87adfed562a7004a9e018a723e93bf12d818be31ad4ad28f"
 "checksum generic-array 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8107dafa78c80c848b71b60133954b4a58609a3a1a5f9af037ecc7f67280f369"
 "checksum hash32 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "12d790435639c06a7b798af9e1e331ae245b7ef915b92f70a39b4cf8c00686af"
 "checksum heapless 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "56b960caff1a46f1fb3c1eb05f0575ac21c6248364ebebde11b11116e099881c"
