@@ -15,7 +15,7 @@ panic-semihosting = "0.5"
 bme280 = "0.1.1"
 stm32f103xx-rtc = { git = "https://github.com/TeXitoi/stm32f103xx-rtc", branch = "master" }
 pwm-speaker = { git = "https://github.com/TeXitoi/pwm-speaker", branch = "master" }
-il3820 = { git = "https://github.com/TeXitoi/il3820" }
+epd-waveshare = { version = "0.3.2", features = ["type_a_alternative_faster_lut"] }
 embedded-hal = "0.2.1"
 portable = { path = "portable" }
 

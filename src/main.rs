@@ -4,6 +4,7 @@
 #[cfg(not(test))]
 extern crate panic_semihosting;
 
+use epd_waveshare::prelude::*;
 use portable::datetime::DateTime;
 use portable::{alarm, button, datetime, ui};
 use pwm_speaker::songs::SO_WHAT;
@@ -32,12 +33,12 @@ type Spi = spi::Spi<
         gpio::gpiob::PB15<gpio::Alternate<gpio::PushPull>>,
     ),
 >;
-type EPaperDisplay = il3820::Il3820<
+type EPaperDisplay = epd_waveshare::epd2in9::EPD2in9<
     Spi,
-    gpio::gpiob::PB12<gpio::Output<gpio::PushPull>>,
-    gpio::gpioa::PA8<gpio::Output<gpio::PushPull>>,
-    gpio::gpioa::PA9<gpio::Output<gpio::PushPull>>,
-    gpio::gpioa::PA10<gpio::Input<gpio::Floating>>,
+    gpio::gpiob::PB12<gpio::Output<gpio::PushPull>>, // cs/nss
+    gpio::gpioa::PA10<gpio::Input<gpio::Floating>>,  // busy
+    gpio::gpioa::PA8<gpio::Output<gpio::PushPull>>,  // dc
+    gpio::gpioa::PA9<gpio::Output<gpio::PushPull>>,  // rst
 >;
 
 #[app(device = stm32f1xx_hal::stm32)]
@@ -99,7 +100,7 @@ const APP: () = {
                 month: 9,
                 day: 1,
                 hour: 23,
-                min: 15,
+                min: 59,
                 sec: 40,
                 day_of_week: datetime::DayOfWeek::Wednesday,
             };
@@ -131,20 +132,22 @@ const APP: () = {
         let mut spi = spi::Spi::spi2(
             device.SPI2,
             (sck, miso, mosi),
-            il3820::MODE,
+            epd_waveshare::SPI_MODE,
             4.mhz(),
             clocks,
             &mut rcc.apb1,
         );
-        let mut il3820 = il3820::Il3820::new(
+        let mut il3820 = epd_waveshare::epd2in9::EPD2in9::new(
             &mut spi,
             gpiob.pb12.into_push_pull_output(&mut gpiob.crh),
+            gpioa.pa10.into_floating_input(&mut gpioa.crh),
             gpioa.pa8.into_push_pull_output(&mut gpioa.crh),
             gpioa.pa9.into_push_pull_output(&mut gpioa.crh),
-            gpioa.pa10.into_floating_input(&mut gpioa.crh),
             &mut delay,
-        );
-        il3820.clear(&mut spi).unwrap();
+        )
+        .unwrap();
+        il3820.set_lut(&mut spi, Some(RefreshLUT::QUICK)).unwrap();
+        il3820.clear_frame(&mut spi).unwrap();
 
         core.DCB.enable_trace();
         core.DWT.enable_cycle_counter();
@@ -163,7 +166,7 @@ const APP: () = {
         );
         let i2c = i2c::blocking_i2c(i2c, clocks, 200, 10, 200, 200);
         let mut bme280 = bme280::BME280::new_primary(i2c, delay);
-        bme280.init().unwrap();
+        bme280.init().expect("i2c init error");
 
         spawn
             .msg(ui::Msg::AlarmManager(alarm_manager.clone()))
@@ -259,21 +262,34 @@ const APP: () = {
 
     #[interrupt(priority = 1, resources = [UI, DISPLAY, SPI, FULL_UPDATE])]
     fn EXTI1() {
-        while resources.DISPLAY.is_busy() {}
         let model = resources.UI.lock(|model| model.clone());
         let display = model.view();
         let full_update = resources
             .FULL_UPDATE
             .lock(|fu| core::mem::replace(&mut *fu, false));
         if full_update {
-            resources.DISPLAY.set_full();
+            resources
+                .DISPLAY
+                .set_lut(&mut *resources.SPI, Some(RefreshLUT::FULL))
+                .unwrap();
         }
+
         resources
             .DISPLAY
-            .set_display(&mut *resources.SPI, &display)
+            .update_frame(&mut *resources.SPI, &display.buffer())
             .unwrap();
-        resources.DISPLAY.update(&mut *resources.SPI).unwrap();
-        resources.DISPLAY.set_partial();
+        resources
+            .DISPLAY
+            .display_frame(&mut *resources.SPI)
+            .unwrap();
+
+        if full_update {
+            // partial/quick refresh needs only be set when a full update was run before
+            resources
+                .DISPLAY
+                .set_lut(&mut *resources.SPI, Some(RefreshLUT::QUICK))
+                .unwrap();
+        }
     }
 
     // Interrupt handlers used to dispatch software tasks

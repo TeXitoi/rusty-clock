@@ -3,15 +3,16 @@ use core::fmt::Write;
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::Font8x16;
 use embedded_graphics::prelude::*;
+use epd_waveshare::epd2in9::Display2in9;
+use epd_waveshare::prelude::Color;
 use heapless::{consts::*, String};
-use il3820::DisplayRibbonLeft;
 
 const MARGIN_TOP: i32 = 16;
 const MARGIN_LEFT: i32 = 4;
 const FONT_WIDTH: i32 = 8;
 const INTERLINE: i32 = 16;
 
-pub fn render(title: &str, mut items: &[&str], mut selected: i32, display: &mut DisplayRibbonLeft) {
+pub fn render(title: &str, mut items: &[&str], mut selected: i32, display: &mut Display2in9) {
     render_str(title, MARGIN_LEFT, MARGIN_TOP, display);
 
     let len = items.len();
@@ -46,10 +47,11 @@ pub fn render(title: &str, mut items: &[&str], mut selected: i32, display: &mut 
     );
 }
 
-fn render_str(s: &str, x: i32, y: i32, display: &mut DisplayRibbonLeft) {
+fn render_str(s: &str, x: i32, y: i32, display: &mut Display2in9) {
     display.draw(
         Font8x16::render_str(s)
-            .with_stroke(Some(1u8))
+            .with_stroke(Some(Color::Black))
+            .with_fill(Some(Color::White))
             .translate(Coord::new(x, y))
             .into_iter(),
     );

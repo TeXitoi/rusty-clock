@@ -4,8 +4,10 @@ use core::fmt::{self, Write};
 use embedded_graphics::coord::Coord;
 use embedded_graphics::fonts::Font8x16;
 use embedded_graphics::prelude::*;
+use epd_waveshare::epd2in9::Display2in9;
+use epd_waveshare::graphics::Display;
+use epd_waveshare::prelude::{Color, DisplayRotation};
 use heapless::{consts::*, String, Vec};
-use il3820::DisplayRibbonLeft;
 
 mod header;
 mod menu;
@@ -148,8 +150,9 @@ impl Model {
         }
         cmds
     }
-    pub fn view(&self) -> DisplayRibbonLeft {
-        let mut display = DisplayRibbonLeft::default();
+    pub fn view(&self) -> Display2in9 {
+        let mut display = Display2in9::default();
+        display.set_rotation(DisplayRotation::Rotate270);
 
         self.render_header(&mut display);
 
@@ -169,7 +172,7 @@ impl Model {
             self.last_input = epoch;
         }
     }
-    fn render_header(&self, display: &mut DisplayRibbonLeft) {
+    fn render_header(&self, display: &mut Display2in9) {
         let mut header = header::Header::new(display);
         let mut s: String<U128> = String::new();
 
@@ -204,7 +207,7 @@ impl Model {
         write!(s, "{}°C", Centi(i32::from(self.env.temperature))).unwrap();
         header.top_right(&s);
     }
-    fn render_clock(&self, display: &mut DisplayRibbonLeft) {
+    fn render_clock(&self, display: &mut Display2in9) {
         let mut seven = seven_segments::SevenSegments::new(display, 0, 18);
 
         if self.now.hour >= 10 {
@@ -226,15 +229,16 @@ impl Model {
         write!(s, ":{:02}", self.now.sec).unwrap();
         display.draw(
             Font8x16::render_str(&s)
-                .with_stroke(Some(1u8))
+                .with_stroke(Some(Color::Black))
+                .with_fill(Some(Color::White))
                 .translate(Coord::new(296 - 3 * 8, 17))
                 .into_iter(),
         );
     }
-    fn render_menu(&self, elt: state::MenuElt, display: &mut DisplayRibbonLeft) {
+    fn render_menu(&self, elt: state::MenuElt, display: &mut Display2in9) {
         menu::render("Menu:", elt.items(), elt as i32, display);
     }
-    fn render_set_clock(&self, dt: &state::EditDateTime, display: &mut DisplayRibbonLeft) {
+    fn render_set_clock(&self, dt: &state::EditDateTime, display: &mut Display2in9) {
         let mut title: String<U128> = String::new();
         write!(
             title,
@@ -244,7 +248,7 @@ impl Model {
         .unwrap();
         menu::render(&title, &[dt.as_edit_str()], 0, display);
     }
-    fn render_manage_alarms(&self, i: usize, display: &mut DisplayRibbonLeft) {
+    fn render_manage_alarms(&self, i: usize, display: &mut Display2in9) {
         let v: Vec<_, U5> = self
             .alarm_manager
             .alarms
