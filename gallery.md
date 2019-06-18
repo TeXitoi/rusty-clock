@@ -24,3 +24,7 @@
 
 ![](images/24-v2-front.jpg)
 ![](images/25-v2-back.jpg)
+
+## @caemor tests
+
+![](images/26-caemor-testing.png)
