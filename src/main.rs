@@ -10,7 +10,7 @@ use portable::{alarm, button, datetime, ui};
 use pwm_speaker::songs::SO_WHAT;
 use rtfm::app;
 use stm32f1xx_hal::prelude::*;
-use stm32f1xx_hal::{delay, gpio, i2c, spi, stm32, timer, rtc};
+use stm32f1xx_hal::{delay, gpio, i2c, rtc, spi, stm32, timer};
 
 mod sound;
 
@@ -93,7 +93,9 @@ const APP: () = {
         let mut timer = timer::Timer::tim3(device.TIM3, 1.khz(), clocks, &mut rcc.apb1);
         timer.listen(timer::Event::Update);
 
-        let mut backup_domain = rcc.bkp.constrain(device.BKP, &mut rcc.apb1, &mut device.PWR);
+        let mut backup_domain = rcc
+            .bkp
+            .constrain(device.BKP, &mut rcc.apb1, &mut device.PWR);
         let mut rtc = rtc::Rtc::rtc(device.RTC, &mut backup_domain);
         if rtc.seconds() < 100 {
             let today = DateTime {
