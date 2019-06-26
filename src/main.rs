@@ -55,6 +55,7 @@ const APP: () = {
     static mut SPI: Spi = ();
     static mut UI: ui::Model = ();
     static mut FULL_UPDATE: bool = false;
+    static mut TIMER: stm32f1xx_hal::timer::Timer<stm32::TIM3> = ();
 
     #[init(spawn = [msg])]
     fn init() -> init::LateResources {
@@ -187,14 +188,13 @@ const APP: () = {
             SPI: spi,
             UI: ui::Model::init(),
             ALARM_MANAGER: alarm_manager,
+            TIMER: timer,
         }
     }
 
-    #[interrupt(priority = 4, spawn = [msg], resources = [BUTTON0, BUTTON1, BUTTON2, BUTTON3, SOUND])]
+    #[interrupt(priority = 4, spawn = [msg], resources = [BUTTON0, BUTTON1, BUTTON2, BUTTON3, SOUND, TIMER])]
     fn TIM3() {
-        unsafe { &*stm32::TIM3::ptr() }
-            .sr
-            .modify(|_, w| w.uif().clear_bit());
+        resources.TIMER.clear_update_interrupt_flag();
 
         if let button::Event::Pressed = resources.BUTTON0.poll() {
             resources.SOUND.stop();
