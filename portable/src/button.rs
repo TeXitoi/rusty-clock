@@ -13,7 +13,7 @@ pub struct Button<T> {
     button: T,
     state: State,
 }
-impl<T: ::embedded_hal::digital::InputPin> Button<T> {
+impl<T: ::embedded_hal::digital::v2::InputPin<Error = core::convert::Infallible>> Button<T> {
     pub fn new(button: T) -> Self {
         Button {
             button,
@@ -22,7 +22,7 @@ impl<T: ::embedded_hal::digital::InputPin> Button<T> {
     }
     pub fn poll(&mut self) -> Event {
         use self::State::*;
-        let value = self.button.is_high();
+        let value = self.button.is_high().unwrap();
         match &mut self.state {
             High(cnt) => {
                 if value {
