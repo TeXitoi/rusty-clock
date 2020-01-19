@@ -150,6 +150,28 @@ impl Alarm {
             day = day.next();
         }
     }
+    pub fn as_u32(&self) -> u32 {
+        self.mode.bits() as u32
+            | (self.min as u32) << 8
+            | (self.hour as u32) << 16
+            | (self.is_enable as u32) << 24
+            | 1 << 25
+    }
+    pub fn try_from(u: u32) -> Option<Self> {
+        if u >> 25 != 1 {
+            return None;
+        }
+        let res = Self {
+            is_enable: (u & 1 << 24) != 0,
+            hour: (u >> 16) as u8,
+            min: (u >> 8) as u8,
+            mode: Mode::from_bits_truncate(u as u8),
+        };
+        if res.hour > 23 || res.min > 59 {
+            return None;
+        }
+        Some(res)
+    }
 }
 impl fmt::Display for Alarm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -264,5 +286,18 @@ mod test {
 
         let next = alarm_manager.next_ring(&datetime);
         assert_eq!(next, Some((DayOfWeek::Monday, 7, 25)));
+    }
+
+    #[test]
+    fn test_alarm_from_u32() {
+        assert_eq!(None, Alarm::try_from(0));
+        let mut alarm = Alarm::default();
+        assert_eq!(Some(alarm.clone()), Alarm::try_from(alarm.as_u32()));
+        assert_eq!(None, Alarm::try_from(alarm.as_u32() | 60 << 8));
+        assert_eq!(None, Alarm::try_from(alarm.as_u32() | 1 << 26));
+        alarm.set_hour(0);
+        assert_eq!(None, Alarm::try_from(alarm.as_u32() | 24 << 16));
+        alarm.is_enable = true;
+        assert_eq!(Some(alarm.clone()), Alarm::try_from(alarm.as_u32()));
     }
 }

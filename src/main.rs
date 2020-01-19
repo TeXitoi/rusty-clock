@@ -59,7 +59,8 @@ const APP: () = {
         ui: ui::Model,
         #[init(false)]
         full_update: bool,
-        timer: stm32f1xx_hal::timer::CountDownTimer<stm32::TIM3>,
+        timer: timer::CountDownTimer<stm32::TIM3>,
+        backup_domain: stm32f1xx_hal::backup_domain::BackupDomain,
     }
 
     #[init(spawn = [msg])]
@@ -115,19 +116,14 @@ const APP: () = {
         }
         rtc_dev.listen_seconds();
 
-        use crate::alarm::Mode;
         let mut alarm_manager = alarm::AlarmManager::default();
-        alarm_manager.alarms[0].is_enable = true;
-        alarm_manager.alarms[0].set_hour(7);
-        alarm_manager.alarms[0].set_min(25);
-        alarm_manager.alarms[0].mode = Mode::MONDAY | Mode::TUESDAY | Mode::THURSDAY | Mode::FRIDAY;
-        alarm_manager.alarms[1].is_enable = true;
-        alarm_manager.alarms[1].set_hour(8);
-        alarm_manager.alarms[1].set_min(15);
-        alarm_manager.alarms[1].mode = Mode::WEDNESDAY;
-        alarm_manager.alarms[4].set_hour(13);
-        alarm_manager.alarms[4].set_min(37);
-        alarm_manager.alarms[4].mode = Mode::all() - Mode::ONE_TIME;
+        for i in 0..5 {
+            let d0 = backup_domain.read_data_register_low(i * 2);
+            let d1 = backup_domain.read_data_register_low(i * 2 + 1);
+            if let Some(alarm) = alarm::Alarm::try_from(d0 as u32 | (d1 as u32) << 16) {
+                alarm_manager.alarms[i] = alarm;
+            }
+        }
 
         let mut delay = delay::Delay::new(c.core.SYST, clocks);
 
@@ -190,6 +186,7 @@ const APP: () = {
             ui: ui::Model::init(),
             alarm_manager,
             timer,
+            backup_domain,
         }
     }
 
@@ -239,7 +236,7 @@ const APP: () = {
         c.spawn.msg(msg).unwrap();
     }
 
-    #[task(priority = 2, capacity = 16, spawn = [msg], resources = [ui, rtc_dev, full_update, alarm_manager])]
+    #[task(priority = 2, capacity = 16, spawn = [msg], resources = [ui, rtc_dev, full_update, alarm_manager, backup_domain])]
     fn msg(mut c: msg::Context, msg: ui::Msg) {
         use crate::ui::Cmd::*;
         for cmd in c.resources.ui.update(msg) {
@@ -253,6 +250,13 @@ const APP: () = {
                     }
                 }
                 UpdateAlarm(alarm, i) => {
+                    let data = alarm.as_u32();
+                    c.resources
+                        .backup_domain
+                        .write_data_register_low(i * 2, data as u16);
+                    c.resources
+                        .backup_domain
+                        .write_data_register_low(i * 2 + 1, (data >> 16) as u16);
                     let manager = c.resources.alarm_manager.lock(|m| {
                         m.alarms[i] = alarm;
                         m.clone()
