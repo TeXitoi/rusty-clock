@@ -1,6 +1,8 @@
 use <utils.scad>
 include <params.scad>
 
+thickness=1.2;
+
 function hex_dist(d) = sqrt(pow(d, 2)-pow(d/2, 2));
 
 module back() {

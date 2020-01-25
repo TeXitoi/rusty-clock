@@ -51,7 +51,7 @@ module blue_pill() {
   for (i = [-1.5:1.5])
     translate([width / 2 - 4.7, i * pin, depth/2 + pin/2])
       rotate([0,90,0])
-        pin(with_dupond=true);
+        pin(with_dupond=false);
 
   // boot pins
   for (i=[0.5:1.5])

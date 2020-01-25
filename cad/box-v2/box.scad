@@ -19,16 +19,29 @@ module box() {
             rounded_square([box_width - 2*thickness, box_height - 2*thickness],
                            r=box_rounding - thickness,
                            center=true);
+
+          // button_legend
+          for (i=[0:3]) {
+               translate(button_coords[i])
+                    translate([0,-legend_depth,-button_legend_offset])
+                    rotate([90,0,180])
+                    linear_extrude(legend_depth*2)
+                    text(legend_texts[i], legend_size, legend_font, valign="center", halign="center");
+          }
         }
 
         // backpanel pilones
-        for (i=[-1, 1])
-          for (j=[-1, 1]) {
-            translate([i * (box_width/2-thickness-backpanel_pilone_size/2),
-                       j * (box_height/2-thickness-backpanel_pilone_size/2),
-                       box_pilone_height/2])
-              cube([backpanel_pilone_size, backpanel_pilone_size, box_pilone_height], center=true);
-          }
+        intersection() {
+             for (i=[-1, 1])
+                  for (j=[-1, 1]) {
+                       translate([i * (box_width/2-thickness-backpanel_pilone_size/2),
+                                  j * (box_height/2-thickness-backpanel_pilone_size/2),
+                                  box_pilone_height/2])
+                            cube([backpanel_pilone_size, backpanel_pilone_size, box_pilone_height], center=true);
+                  }
+             linear_extrude(box_depth)
+                  rounded_square([box_width, box_height], r=box_rounding, center=true);
+        }
 
         // bluepill support
         for (i=[0, bluepill_height - thickness]) {
@@ -51,14 +64,8 @@ module box() {
                    0])
           cube([bluepill_height, backpanel_pilone_size, thickness + 2]);
 
-        // aaa-baterry holder
-        for (i=[-0.5:-1:-2.5]) {
-          translate([i*(10.5+thickness)+bp_external_support_x+0.5*thickness, -box_height/2, 0])
-            rotate([-90, -90, 0])
-            aaa_holder();
-        }
         // coin-baterry holder
-        translate([bp_external_support_x-3*10.5-3*thickness-20.5,
+        translate([bp_external_support_x-20.5,
                    -box_height/2+backpanel_pilone_size,
                    thickness]){
           difference() {
@@ -67,7 +74,7 @@ module box() {
             translate([(20.5-14.5)/2, -thickness, 0]) cube([14.5, 3*thickness, 7]);
           }
         }
-        translate([bp_external_support_x-3*10.5-4*thickness-20.5,
+        translate([bp_external_support_x-20.5,
                    -box_height/2+thickness,
                    thickness]){
           cube([thickness, backpanel_pilone_size, 15]);
@@ -84,8 +91,8 @@ module box() {
 
       // backpanel screw holes
       for (coord=backpanel_hole_coords)
-        translate([coord.x, coord.y, box_depth - 19])
-          cylinder(d=1.8, h=19);
+        translate([coord.x, coord.y, box_pilone_height])
+          cylinder(d=3.2, h=5*2, center=true);
 
       // debugger pocket
       translate([box_width/2-thickness-backpanel_pilone_size-bluepill_height/2,

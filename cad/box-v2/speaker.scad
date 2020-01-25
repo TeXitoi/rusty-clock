@@ -1,5 +1,6 @@
 use <utils.scad>
 use <screws.scad>
+include <params.scad>
 
 module speaker_holes() {
   for (r=[45:90:360])
@@ -53,7 +54,7 @@ module speaker(support_thickness=2) {
 
 module speaker_pocket() {
   difference() {
-    translate([0,0,-45]) linear_extrude(45) rounded_square([54, 54], r=4, center=true);
+    translate([0,0,-45]) linear_extrude(45) rounded_square([54, 54], r=box_rounding-thickness, center=true);
     for (r=[45:90:360]) {
       rotate([0,0,r])
         translate([54/2*sqrt(2), 0, -45])
@@ -62,7 +63,7 @@ module speaker_pocket() {
     }
   }
   cylinder(d=51, h=20, center=true);
-  speaker_holes() cylinder(d=3.5, h=20, center=true);
+  speaker_holes() cylinder(d=3.6, h=20, center=true);
 }
 
 speaker();
