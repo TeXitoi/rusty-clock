@@ -20,8 +20,8 @@ bluepill_y=-box_height/2+backpanel_pilone_size - 0.5 * thickness;
 backpanel_hole_coords=[
   for (i=[-1,1])
     for (j=[-1,1])
-      [i * (box_width/2-thickness-backpanel_pilone_size+2.5),
-       j * (box_height/2-thickness-backpanel_pilone_size+2.5)]
+      [i * (box_width/2-thickness-backpanel_pilone_size+3),
+       j * (box_height/2-thickness-backpanel_pilone_size+3)]
 ];
 
 legend_depth=0.6;
