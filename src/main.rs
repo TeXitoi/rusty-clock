@@ -57,7 +57,7 @@ const APP: () = {
         display: EPaperDisplay,
         spi: Spi,
         ui: ui::Model,
-        #[init(false)]
+        #[init(true)]
         full_update: bool,
         timer: timer::CountDownTimer<stm32::TIM3>,
         backup_domain: stm32f1xx_hal::backup_domain::BackupDomain,
@@ -102,12 +102,12 @@ const APP: () = {
         let mut rtc_dev = rtc::Rtc::rtc(c.device.RTC, &mut backup_domain);
         if rtc_dev.current_time() < 100 {
             let today = DateTime {
-                year: 2018,
-                month: 9,
+                year: 2020,
+                month: 1,
                 day: 1,
-                hour: 23,
-                min: 59,
-                sec: 40,
+                hour: 0,
+                min: 0,
+                sec: 0,
                 day_of_week: datetime::DayOfWeek::Wednesday,
             };
             if let Some(epoch) = today.to_epoch() {
