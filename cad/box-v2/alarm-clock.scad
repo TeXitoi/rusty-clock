@@ -21,6 +21,9 @@ blue_pill();
 
 translate([0,0,box_pilone_height]) back();
 
+// coin baterry
+//translate([bluepill_x-23.5,-box_height/2+2,10+2]) rotate([-90,0,0]) color([0.7, 0.7, 0.7]) cylinder(d=20, h=3.2);
+
 /*
 translate([0, box_height/2, box_depth - 28/2])
 rotate([90,0,0])

@@ -74,7 +74,7 @@ module box() {
             translate([(20.5-14.5)/2, -thickness, 0]) cube([14.5, 3*thickness, 7]);
           }
         }
-        translate([bp_external_support_x-20.5,
+        translate([bp_external_support_x-20.5-thickness,
                    -box_height/2+thickness,
                    thickness]){
           cube([thickness, backpanel_pilone_size, 15]);
