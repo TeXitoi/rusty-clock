@@ -1,5 +1,6 @@
 use <utils.scad>
 use <screws.scad>
+include <params.scad>
 
 width=89.5;
 height=38;
@@ -12,7 +13,7 @@ display_size=[67, 29];
 
 module epaper(support_thickness=2) {
   corner_radius=1.5;
-  thickness=1.6;
+  t=1.6;
 
   hole_diameter=3;
 
@@ -20,14 +21,14 @@ module epaper(support_thickness=2) {
     difference() {
       // PCB
       color([0, 0, 0.6])
-        translate([0, 0, -thickness])
-        linear_extrude(thickness)
+        translate([0, 0, -t])
+        linear_extrude(t)
         rounded_square([width, height], center=true, r=corner_radius);
 
       // holes
       for (offset = hole_offsets)
         translate(offset)
-          cylinder(d=3, h=3*thickness, center=true);
+          cylinder(d=3, h=3*t, center=true);
     }
 
     // glass
@@ -37,23 +38,23 @@ module epaper(support_thickness=2) {
 
     // display ribbon
     color("gold")
-      translate([-width/2 + 5.5/2 - 0.1, 0, -thickness/2])
-      cube([5.6, 16, thickness + 2], center=true);
+      translate([-width/2 + 5.5/2 - 0.1, 0, -t/2])
+      cube([5.6, 16, t + 2], center=true);
 
     // ribbon connector
     color([0.9, 0.9, 0.9])
-      translate([width/2-7.5/2, 0, -thickness-5.5/2])
+      translate([width/2-7.5/2, 0, -t-5.5/2])
       cube([7.5, 20, 5.5], center=true);
 
     // ribbon
     color([0.4, 0, 0.4])
-      translate([width/2+5, 0, -thickness-2])
+      translate([width/2+5, 0, -t-2])
       cube([10, 15, 1.2], center=true);
 
     for (offset = hole_offsets)
       translate(offset) {
         translate([0, 0, support_thickness]) m3_screw();
-        color("gold") translate([0, 0, -thickness]) m3_bolt(h=5.7);
+        color("gold") translate([0, 0, -t]) m3_bolt(h=5.7);
       }
   }
 
@@ -70,10 +71,14 @@ module epaper_pocket() {
 
     // pcb
     difference() {
-      depth=30;
-      translate([0,0,-depth/2]) cube([width+1, height+1, depth], center=true);
+      depth=45;
+      os=5;
+      translate([0,0,-depth]) linear_extrude(depth)
+           rounded_square([width+os, height+os],
+                          center=true,
+                          r=box_rounding-thickness);
       for (pos=[[1,1,45], [-1,1,45+90], [-1,-1,45+180], [1,-1,45+270]]) {
-        translate([pos.x*(width+1)/2, pos.y*(height+1)/2, -depth])
+        translate([pos.x*(width+os)/2, pos.y*(height+os)/2, -depth])
           rotate([0, 45, pos[2]])
             cube([10*sqrt(2),40,10*sqrt(2)], center=true);
       }
