@@ -1,7 +1,7 @@
 #[derive(Copy, Clone)]
 pub enum Event {
     Pressed,
-    Reseased,
+    Released,
     Nothing,
 }
 #[derive(Copy, Clone)]
@@ -46,7 +46,7 @@ impl<T: ::embedded_hal::digital::v2::InputPin<Error = core::convert::Infallible>
             }
             Low(cnt) if cnt >= 30 => {
                 self.state = High(0);
-                Event::Reseased
+                Event::Released
             }
             _ => Event::Nothing,
         }
