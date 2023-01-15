@@ -13,7 +13,7 @@ epaper_placement() epaper();
 
 speaker_placement() speaker();
 
-button_placement() button(thickness);
+//button_placement() button(thickness);
 
 translate([bluepill_x, bluepill_y, thickness + 53/2 + 2])
 rotate([-90, 90, 0])

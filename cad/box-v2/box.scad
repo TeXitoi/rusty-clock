@@ -83,7 +83,8 @@ module box() {
 
       // button holes
       button_placement()
-        cylinder(d=16.2, h=3*thickness, center=true);
+        //cylinder(d=16.2, h=3*thickness, center=true);
+        cube([13.8, 13.8, 3*thickness], center=true);
 
       // epaper pocket
       epaper_placement()

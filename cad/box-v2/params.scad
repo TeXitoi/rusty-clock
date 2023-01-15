@@ -29,8 +29,12 @@ legend_size=6;
 legend_texts=["C", "<", ">", "OK"];
 legend_font="Latin Modern Sans Quotation:style=8 Bold";
 button_legend_offset=15;
-button_spacing=25;
-button_x=box_width/2-9-2*button_spacing;
+
+//button_spacing=25;
+//button_x=box_width/2-9-2*button_spacing;
+button_spacing=19.05;
+button_x=box_width/2-2*button_spacing-20;
+
 button_coords=[ for (i=[1.5:-1:-1.5]) [i*button_spacing+button_x, box_height/2, box_depth/2] ];
 module button_placement() {
   for (coord = button_coords)
