@@ -9,7 +9,7 @@ use epd_waveshare::prelude::*;
 use portable::datetime::DateTime;
 use portable::{alarm, button, datetime, ui};
 use pwm_speaker::songs::SO_WHAT;
-use rtfm::app;
+use rtic::app;
 use stm32f1xx_hal::prelude::*;
 use stm32f1xx_hal::{delay, gpio, i2c, rtc, spi, stm32, timer};
 
@@ -266,7 +266,7 @@ const APP: () = {
                 FullUpdate => *c.resources.full_update = true,
             }
         }
-        rtfm::pend(stm32::Interrupt::EXTI1);
+        rtic::pend(stm32::Interrupt::EXTI1);
     }
 
     #[task(binds = EXTI1, priority = 1, resources = [ui, display, spi, full_update])]

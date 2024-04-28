@@ -10,7 +10,7 @@ edition = "2018"
 stm32f1xx-hal = { version = "0.5", features = ["rt", "stm32f103" ] }
 cortex-m = "0.6"
 #cortex-m-rt = { version = "0.6", features = ["device"] }
-cortex-m-rtfm = "0.5.0"
+cortex-m-rtic = "0.5.0"
 panic-semihosting = "0.5"
 bme280 = "0.2"
 pwm-speaker = { git = "https://github.com/TeXitoi/pwm-speaker", branch = "master" }
